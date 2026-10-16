@@ -300,6 +300,49 @@ dialog.dlg::backdrop{background:rgba(0,0,0,.28)}
 .dlg .opt span{color:var(--ink2);font-size:14px}
 .dlg .opt .bs{height:44px;font-size:14px}
 .dlg .close{display:flex;justify-content:flex-end;padding-top:20px}
+
+/* onboarding extras */
+.ro{display:flex;align-items:center;gap:12px;margin:0;font-size:15px;color:var(--ink2)}
+.ro svg{color:var(--ink);flex:none}
+.note.wait p:first-child{font-size:11px;color:var(--ink2);margin-bottom:6px}
+.note.wait p:nth-child(2){font-size:18px;color:var(--ink)}
+.note.wait p:nth-child(3){color:var(--ink2)}
+.bp:disabled{opacity:.5;cursor:default}
+
+/* font detail */
+.det{max-width:1280px;margin:0 auto;padding:32px 32px 120px;display:flex;flex-direction:column}
+@media (max-width:720px){.det{padding:20px 16px 72px}}
+.crumbs{display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:11px;color:var(--ink2)}
+.crumbs .bt{height:32px;font-size:11px;letter-spacing:.08em}
+.crumbs span:last-child{color:var(--ink)}
+.d-hero{display:flex;flex-wrap:wrap;gap:24px 32px;align-items:flex-end;justify-content:space-between;margin-top:40px}
+.d-title{flex:999 1 560px;min-width:0;display:flex;flex-direction:column;gap:16px}
+.d-title h1{margin:0;font-weight:400;font-size:clamp(56px,11vw,152px);line-height:.95;letter-spacing:-.02em;overflow-wrap:anywhere}
+.d-acts{flex:1 1 280px;display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:12px 20px}
+.d-acts .round{width:48px;height:48px;margin:0;border:1px solid var(--line);border-radius:50%;color:var(--ink)}
+.d-acts .round:hover{border-color:var(--ink)}
+.d-body{display:flex;flex-wrap:wrap;gap:48px;margin-top:56px}
+.d-water{flex:999 1 560px;min-width:0;display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.wrow{display:flex;align-items:baseline;gap:24px;padding:18px 0;border-bottom:1px solid var(--line);min-width:0}
+.wrow .mono{font-size:10px;color:var(--ink2);width:112px;flex:none;line-height:1.4}
+.wrow .ws{font-size:36px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;padding-bottom:.08em}
+@media (max-width:720px){.wrow{flex-direction:column;gap:6px}.wrow .ws{font-size:28px}}
+.d-more{align-self:flex-start;margin-top:8px}
+.glyphs{padding:28px 0 0;font-size:40px;line-height:1.3;letter-spacing:.02em;overflow-wrap:anywhere}
+.d-side{flex:1 1 280px;min-width:0;display:flex;flex-direction:column;gap:28px;padding-top:18px}
+.d-side label{display:flex;flex-direction:column;gap:8px}
+.d-side textarea{border:0;border-bottom:1px solid var(--line);outline:none;resize:vertical;background:transparent;color:var(--ink);font:inherit;font-size:16px;line-height:1.5;padding:0 0 12px;min-height:84px}
+.d-side textarea:focus{border-bottom-color:var(--ink)}
+.facts{margin:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 20px;font-size:14px}
+.facts div{display:flex;flex-direction:column;gap:4px}
+.facts dt{font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2)}
+.facts dd{margin:0}
+.d-pairs{margin-top:160px;display:flex;flex-direction:column}
+@media (max-width:720px){.d-pairs{margin-top:96px}}
+.d-phead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:12px;padding-bottom:20px}
+.d-phead h2{margin:0;font-family:'Geist Mono',monospace;font-weight:400;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.fname{color:inherit;text-decoration:none}
+.speclink{color:inherit;text-decoration:none;display:block;min-width:0}
 </style>
 </head>
 <body>
@@ -335,6 +378,16 @@ dialog.dlg::backdrop{background:rgba(0,0,0,.28)}
     <button type="button" class="bp" id="allow">Allow access to fonts</button>
     <button type="button" class="bt" id="pickFiles">Or choose font files</button>
     <button type="button" class="bt" id="restoreStart">Restore a backup</button>
+  </div>
+  <p class="ro"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>Read-only. Kept never installs, moves or deletes fonts.</p>
+  <div class="note wait" id="noteWait" role="status" hidden>
+    <p class="mono">Step 1 of 2 · Waiting</p>
+    <p>Your browser is asking for permission</p>
+    <p>Look for the prompt near the address bar and choose Allow. Kept only reads the list of fonts; it can’t change them.</p>
+  </div>
+  <div class="note" id="noteEmpty" hidden>
+    <p>Chrome didn’t find any installed fonts.</p>
+    <p>Fonts you add in Font Book should show up here. Install some and try again, or drop font files below to look through them now.</p>
   </div>
   <div class="note" id="noteUnsupported" hidden>
     <p id="unsTitle">This browser can’t see installed fonts.</p>
@@ -425,6 +478,35 @@ dialog.dlg::backdrop{background:rgba(0,0,0,.28)}
   </div>
   <div id="results"></div>
   <div id="sentinel" style="height:1px"></div>
+</main>
+
+<!-- 6. Font detail -->
+<main class="det" id="v-detail" hidden>
+  <nav class="crumbs mono" aria-label="Breadcrumb"><button type="button" class="bt mono" id="dBack">Library</button><span aria-hidden="true">/</span><button type="button" class="bt mono" id="dCrumbShelf"></button><span aria-hidden="true">/</span><span id="dCrumbName"></span></nav>
+  <section class="d-hero">
+    <div class="d-title"><span class="mono lbl" id="dMeta"></span><h1 id="dName"></h1></div>
+    <div class="d-acts">
+      <button type="button" class="bm round" id="dSave" aria-pressed="false"></button>
+      <button type="button" class="dd quiet" id="dShelf" aria-haspopup="menu" aria-expanded="false"></button>
+      <button type="button" class="bt" id="dHide" style="font-size:14px"></button>
+      <button type="button" class="bp" id="dPlay">Open in Playground</button>
+    </div>
+  </section>
+  <section class="d-body">
+    <div class="d-water">
+      <div id="dWater"></div>
+      <button type="button" class="bt d-more" id="dMore" hidden></button>
+      <div class="glyphs" id="dGlyphs">Aa Bb Gg Qq Rr &amp; ? ! 0123456789 <span style="font-style:italic">Aa Gg ff</span></div>
+    </div>
+    <aside class="d-side">
+      <label><span class="mono lbl">Why I kept it</span><textarea id="dNote" rows="3" placeholder="A note for future you: where it works, what it pairs with."></textarea></label>
+      <dl class="facts" id="dFacts"></dl>
+    </aside>
+  </section>
+  <section class="d-pairs" aria-labelledby="dPairsTitle">
+    <div class="d-phead"><h2 id="dPairsTitle"></h2><span class="mono lbl">Suggested from your library</span></div>
+    <div id="dPairs"></div>
+  </section>
 </main>
 
 <!-- 5. Playground -->
@@ -545,11 +627,11 @@ $('theme').onclick = () => { store.theme = document.documentElement.dataset.them
 /* ---------- views ---------- */
 const show = (v) => {
   closeMenu(); closePanel();
-  for (const id of ['v-onboard', 'v-load', 'v-sort', 'v-lib', 'v-play']) $(id).hidden = id !== v;
-  const inApp = ['v-sort', 'v-lib', 'v-play'].includes(v);
+  for (const id of ['v-onboard', 'v-load', 'v-sort', 'v-lib', 'v-play', 'v-detail']) $(id).hidden = id !== v;
+  const inApp = ['v-sort', 'v-lib', 'v-play', 'v-detail'].includes(v);
   $('mainnav').hidden = !inApp; $('navLib').hidden = !inApp; $('pgActs').hidden = v !== 'v-play';
   $('searchbox').hidden = !(v === 'v-lib' && ui.page === 'library');
-  if (inApp) { store.lastView = { 'v-sort': 'sort', 'v-lib': 'library', 'v-play': 'playground' }[v]; persist(); }
+  if (inApp) { store.lastView = { 'v-sort': 'sort', 'v-lib': 'library', 'v-play': 'playground', 'v-detail': 'library' }[v]; persist(); }
   setNav(v === 'v-sort' ? 'sort' : v === 'v-play' ? 'playground' : ui.page);
 };
 
@@ -727,9 +809,17 @@ const progress = (done, total, family, css, note) => {
 async function importInstalled(fromLibrary) {
   if (!('queryLocalFonts' in window)) { $('noteUnsupported').hidden = false; $('allow').hidden = true; show('v-onboard'); return; }
   let list;
+  for (const n of ['noteDenied', 'noteEmpty']) $(n).hidden = true;
+  const waitTimer = setTimeout(() => { $('noteWait').hidden = false; $('allow').disabled = true; $('allow').textContent = 'Waiting for permission…'; }, 300);
+  const doneWaiting = () => { clearTimeout(waitTimer); $('noteWait').hidden = true; $('allow').disabled = false; $('allow').textContent = 'Allow access to fonts'; };
   try { list = await window.queryLocalFonts(); }
-  catch (e) { $('noteDenied').hidden = false; show('v-onboard'); return; }
-  if (!list.length) { $('noteDenied').hidden = false; show('v-onboard'); return; }
+  catch (e) { doneWaiting(); $('noteDenied').hidden = false; show('v-onboard'); return; }
+  doneWaiting();
+  if (!list.length) {
+    let denied = false;
+    try { denied = (await navigator.permissions.query({ name: 'local-fonts' })).state === 'denied'; } catch (e) { /* unknown: treat as empty */ }
+    $(denied ? 'noteDenied' : 'noteEmpty').hidden = false; show('v-onboard'); return;
+  }
   show('v-load');
   $('loadLabel').textContent = 'Sorting ' + fmt(list.length) + ' fonts';
   const byFam = new Map();
@@ -995,17 +1085,18 @@ function itemHTML(f, i) {
   const text = esc(ui.preview.trim() || 'Sphinx of black quartz, judge my vow');
   const bm = `<button type="button" class="bm" data-act="save" data-i="${i}" aria-pressed="${saved}" aria-label="${saved ? 'Remove bookmark from ' : 'Bookmark '}${esc(f.family)}">${BOOKMARK.replace('FILL', saved ? 'currentColor' : 'none')}</button>`;
   const move = `<button type="button" class="dd quiet" data-act="move" data-i="${i}" aria-haspopup="menu" aria-expanded="false" aria-label="Shelf for ${esc(f.family)}: ${esc(s)}. Change shelf">${esc(s)}${CARET}</button>`;
-  const spec = (size) => `<p class="spec" data-font="${i}" style="font-size:${size}px">${text}</p>`;
+  const href = '#font/' + encodeURIComponent(f.family);
+  const spec = (size) => `<a class="speclink" href="${href}" tabindex="-1" aria-hidden="true"><p class="spec" data-font="${i}" style="font-size:${size}px">${text}</p></a>`;
   if (ui.view === 'grid') {
-    return `<article class="cell hv hv-c">
-      <div class="head" style="flex-wrap:nowrap"><div class="name"><b>${esc(f.family)}</b><span class="tag">${esc(s)} · ${styleLabel(f.styles)}</span></div>${bm}</div>
+    return `<article class="cell hv hv-c" data-fam="${esc(f.family)}">
+      <div class="head" style="flex-wrap:nowrap"><div class="name"><a class="fname" href="${href}"><b>${esc(f.family)}</b></a><span class="tag">${esc(s)} · ${styleLabel(f.styles)}</span></div>${bm}</div>
       ${spec(ui.size)}
       <div class="foot reveal">${move}<button type="button" class="bt" data-act="play" data-i="${i}" style="height:32px;font-size:13px">Try in Playground</button></div>
     </article>`;
   }
   const big = ui.view === 'display';
-  return `<li class="row hv hv-r${big ? ' big' : ''}">
-    <div class="head"><div class="name"><b>${esc(f.family)}</b><span>${esc(s)} · ${styleLabel(f.styles)}</span></div>
+  return `<li class="row hv hv-r${big ? ' big' : ''}" data-fam="${esc(f.family)}">
+    <div class="head"><div class="name"><a class="fname" href="${href}"><b>${esc(f.family)}</b></a><span>${esc(s)} · ${styleLabel(f.styles)}</span></div>
       <div style="display:flex;align-items:center;gap:20px"><span class="reveal" style="display:flex;align-items:center;gap:20px"><button type="button" class="bt" data-act="play" data-i="${i}" style="height:32px;font-size:13px">Try in Playground</button>${move}</span>${bm}</div></div>
     ${spec(Math.round(ui.size * (big ? 2.2 : 1.5)))}
   </li>`;
@@ -1033,6 +1124,7 @@ function renderResults() {
       : ui.q ? [`Nothing called “${esc(ui.q)}”.`, 'Try part of the family name, or clear the search.']
       : ui.page === 'saved' ? ['No saved fonts yet.', 'Tap the bookmark on any font in your library and it lands here.']
       : ui.shelf === 'Hidden' ? ['Nothing hidden.', 'System and language fonts, and anything you hide while sorting, appear here.']
+      : ui.shelf === 'All' ? ['No fonts on your shelves.', 'Everything is on the Hidden shelf, or no fonts were found. Rescan after installing fonts, or drop font files anywhere on this page.']
       : [`No ${esc(ui.shelf.toLowerCase())} fonts.`, 'Move a font here from its card, or rescan if you installed new ones.'];
     const action = activeCount() ? '<button type="button" class="bt" data-act="clearf" style="color:var(--ink)">Reset filters</button>'
       : ui.page === 'saved' ? '<button type="button" class="bt" data-act="tolib" style="color:var(--ink)">Browse library</button>' : '';
@@ -1042,7 +1134,10 @@ function renderResults() {
   $('results').innerHTML = ui.view === 'grid' ? '<div class="grid"></div>' : '<ul class="rows"></ul>';
   renderMore();
 }
+const phone = matchMedia('(max-width: 720px)');
 function render() {
+  ui.view = phone.matches ? 'list' : (store.view || 'grid');
+  $('views').hidden = phone.matches;
   renderShelves();
   setNav(ui.page);
   document.querySelectorAll('#views .tb').forEach((b) => b.setAttribute('aria-pressed', b.dataset.view === ui.view));
@@ -1052,7 +1147,8 @@ function render() {
   renderFilterBtn();
   renderResults();
 }
-function openLibrary() { show('v-lib'); syncFilterBounds(); render(); window.scrollTo(0, 0); }
+function openLibrary() { if (location.hash.startsWith('#font/')) history.replaceState('', '', location.pathname + location.search); show('v-lib'); syncFilterBounds(); render(); window.scrollTo(0, 0); }
+phone.addEventListener('change', () => { if (!$('v-lib').hidden) render(); });
 
 /* ---------- sorting progress ---------- */
 function shelfStats() {
@@ -1101,6 +1197,7 @@ function renderResume() {
 const sorter = { shelf: null, queue: [], i: 0, history: [], mode: 'pick' };
 
 function enterSort(opts = {}) {
+  if (location.hash.startsWith('#font/')) history.replaceState('', '', location.pathname + location.search);
   show('v-sort'); window.scrollTo(0, 0);
   const o = overall();
   sorter.history = [];
@@ -1343,6 +1440,7 @@ function ensurePg() {
 }
 function openPlayground() {
   if (!families.length) { show('v-onboard'); return; }
+  if (location.hash.startsWith('#font/')) history.replaceState('', '', location.pathname + location.search);
   show('v-play'); window.scrollTo(0, 0);
   if (!ensurePg()) return;
   if (!store.saved || !Object.keys(store.saved).length) pg.src = 'all';
@@ -1512,6 +1610,154 @@ $('restoreInput').onchange = async (e) => {
   location.reload();
 };
 
+/* ---------- font detail ---------- */
+store.notes = store.notes || {};
+const PAIR_LINES = ['The quiet return of the serif', 'Notes on a slower internet', 'A field guide to small rooms', 'Twelve chairs worth sitting in', 'The case for reading on paper', 'Build log, week twelve'];
+const PAIR_BODY = 'Some ideas need room to breathe. One face carries the voice while the other keeps every paragraph light and easy to read.';
+let facesCache = null;
+async function stylesFor(f) {
+  if (f.source === 'installed' && 'queryLocalFonts' in window) {
+    try {
+      if (!facesCache) {
+        const st = navigator.permissions ? (await navigator.permissions.query({ name: 'local-fonts' })).state : 'granted';
+        if (st === 'granted') {
+          facesCache = new Map();
+          for (const x of await window.queryLocalFonts()) { if (!facesCache.has(x.family)) facesCache.set(x.family, []); facesCache.get(x.family).push(x.style); }
+        }
+      }
+      const got = facesCache && facesCache.get(f.family);
+      if (got && got.length) return [...new Set(got)];
+    } catch (e) { /* fall back below */ }
+  }
+  const names = { 100: 'Thin', 200: 'ExtraLight', 300: 'Light', 400: 'Regular', 500: 'Medium', 600: 'SemiBold', 700: 'Bold', 800: 'ExtraBold', 900: 'Black' };
+  const out = [];
+  for (let w = Math.max(100, f.wmin || 400); w <= Math.min(900, f.wmax || 400); w += 100) out.push(names[w]);
+  return out.length ? out : ['Regular'];
+}
+const STRETCH = { 1: '50%', 2: '62.5%', 3: '75%', 4: '87.5%', 5: '100%', 6: '112.5%', 7: '125%', 8: '150%', 9: '200%' };
+const styleCss = (s) => ({ weight: weightOf(s), italic: /italic|oblique/i.test(s), stretch: STRETCH[widthOf(s)] });
+let detailFam = null, detailAll = false, libScroll = 0, libDirty = false;
+
+function openDetail(name) {
+  const f = famBy(name);
+  if (!f) { location.hash = ''; return; }
+  if (!$('v-lib').hidden) libScroll = scrollY;
+  detailFam = name; detailAll = false;
+  show('v-detail'); setNav('library'); window.scrollTo(0, 0);
+  renderDetail();
+}
+async function renderDetail() {
+  const f = famBy(detailFam); if (!f) return;
+  const s = shelfOf(f), saved = !!store.saved[f.family], hidden = s === 'Hidden';
+  document.title = f.family + ' — Kept';
+  $('dCrumbShelf').textContent = s; $('dCrumbName').textContent = f.family;
+  const variable = f.wmax - f.wmin > 0 && f.styles <= 2;
+  $('dMeta').textContent = [s, variable ? 'Variable' : null, styleLabel(f.styles)].filter(Boolean).join(' · ');
+  $('dName').textContent = f.family; $('dName').style.fontFamily = f.css;
+  $('dSave').setAttribute('aria-pressed', saved);
+  $('dSave').setAttribute('aria-label', (saved ? 'Remove bookmark from ' : 'Bookmark ') + f.family);
+  $('dSave').innerHTML = BOOKMARK.replace('FILL', saved ? 'currentColor' : 'none').replace('width="16" height="16"', 'width="18" height="18"');
+  $('dShelf').innerHTML = esc(s) + CARET; $('dShelf').setAttribute('aria-label', 'Shelf: ' + s + '. Change shelf');
+  $('dHide').textContent = hidden ? 'Unhide' : 'Hide';
+  $('dGlyphs').style.fontFamily = f.css;
+  if (document.activeElement !== $('dNote')) $('dNote').value = store.notes[f.family] || '';
+  // facts
+  const widthName = (c) => ({ 1: 'Ultra-condensed', 2: 'Extra-condensed', 3: 'Condensed', 4: 'Semi-condensed', 5: 'Normal', 6: 'Semi-expanded', 7: 'Expanded', 8: 'Extra-expanded', 9: 'Ultra-expanded' }[c]);
+  const reviewed = store.reviewed[f.family];
+  const facts = [
+    ['Shelf', s + (store.moves[f.family] ? ' (moved by you)' : '')],
+    ['Styles', String(f.styles)],
+    ['Weights', f.wmin == null ? '—' : f.wmin === f.wmax ? String(f.wmin) : f.wmin + '–' + f.wmax],
+    ['Width', f.wd0 == null ? '—' : f.wd0 === f.wd1 ? widthName(f.wd0) : widthName(f.wd0) + ' to ' + widthName(f.wd1).toLowerCase()],
+    ['x-Height', f.xh == null ? '—' : Math.round(f.xh * 100) + '% of cap'],
+    ['Source', f.source === 'file' ? 'Added from file' : 'Installed on this Mac'],
+    ['Sorting', reviewed === 'hide' ? 'Hidden by you' : reviewed ? 'Kept' : 'Not checked yet'],
+    ['Saved', saved ? new Date(store.saved[f.family]).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' }) : 'Not saved']
+  ];
+  $('dFacts').innerHTML = facts.map(([k, v]) => `<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join('');
+  // pairs
+  $('dPairsTitle').textContent = 'Pairs with ' + f.family;
+  const bodies = bodyCandidates(f).slice(0, 6);
+  if (!bodies.length) {
+    $('dPairs').innerHTML = '<div class="empty" style="padding:48px 0"><p>Add or unhide a serif or sans-serif to see pairs for this font.</p></div>';
+  } else {
+    $('dPairs').innerHTML = '<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(min(100%,360px),1fr))">' + bodies.map((b, i) => {
+      const cap = captionFor(b), k = [f.family, b.family, cap.family].join('|'), on = store.pairs.some((x) => x.k === k);
+      return `<article class="cell pcell hv hv-c" style="min-height:420px">
+        <div class="head" style="flex-wrap:nowrap"><div class="name"><b>${esc(f.family)}</b><span>+ ${esc(b.family)}</span></div>
+          <button type="button" class="bm" data-dp="save" data-b="${esc(b.family)}" aria-pressed="${on}" aria-label="${on ? 'Remove saved pair' : 'Save pair'} ${esc(f.family)} and ${esc(b.family)}">${BOOKMARK.replace('FILL', on ? 'currentColor' : 'none')}</button></div>
+        <p class="ph" data-h style="font-size:44px">${esc(PAIR_LINES[i % PAIR_LINES.length])}</p>
+        <p class="pb" data-bf="${i}">${esc(PAIR_BODY)}</p>
+        <div class="foot reveal"><span>${esc(shelfOf(b))}</span><button type="button" class="bt" data-dp="play" data-b="${esc(b.family)}" style="height:32px;font-size:13px">Try in Playground</button></div>
+      </article>`;
+    }).join('') + '</div>';
+    $('dPairs').querySelectorAll('[data-h]').forEach((el) => { el.style.fontFamily = f.css; });
+    $('dPairs').querySelectorAll('[data-bf]').forEach((el) => { el.style.fontFamily = bodies[+el.dataset.bf].css; });
+  }
+  // styles waterfall (async for installed fonts)
+  const styles = await stylesFor(f);
+  if (detailFam !== f.family) return;
+  const order = (a, b) => styleCss(a).weight - styleCss(b).weight || styleCss(a).italic - styleCss(b).italic || a.localeCompare(b);
+  const list = styles.slice().sort(order), LIMIT = 10, shown = detailAll ? list : list.slice(0, LIMIT);
+  $('dWater').innerHTML = shown.map((st, i) => `<div class="wrow"><span class="mono">${esc(st)}</span><span class="ws" data-st="${i}">Clear type, quiet confidence.</span></div>`).join('');
+  $('dWater').querySelectorAll('[data-st]').forEach((el) => {
+    const c = styleCss(shown[+el.dataset.st]);
+    Object.assign(el.style, { fontFamily: f.css, fontWeight: c.weight, fontStyle: c.italic ? 'italic' : 'normal', fontStretch: c.stretch });
+  });
+  $('dMore').hidden = list.length <= LIMIT;
+  $('dMore').textContent = detailAll ? 'Show fewer' : 'Show all ' + list.length + ' styles';
+}
+function closeDetail() {
+  if (location.hash.startsWith('#font/')) history.pushState('', '', location.pathname + location.search);
+  document.title = 'Kept — your Font Book, sorted';
+  detailFam = null;
+  show('v-lib'); setNav(ui.page);
+  if (libDirty) { libDirty = false; syncFilterBounds(); render(); window.scrollTo(0, 0); }
+  else { renderShelves(); window.scrollTo(0, libScroll); }
+}
+function route() {
+  const m = location.hash.match(/^#font\/(.+)$/);
+  if (m && families.length) openDetail(decodeURIComponent(m[1]));
+  else if (!$('v-detail').hidden) closeDetail();
+}
+addEventListener('hashchange', route);
+$('dBack').onclick = () => { ui.page = 'library'; ui.shelf = 'All'; libDirty = true; closeDetail(); };
+$('dCrumbShelf').onclick = () => { const f = famBy(detailFam); ui.page = 'library'; ui.shelf = f ? shelfOf(f) : 'All'; libDirty = true; closeDetail(); };
+$('dMore').onclick = () => { detailAll = !detailAll; renderDetail(); };
+$('dSave').onclick = () => {
+  const f = famBy(detailFam); if (!f) return;
+  if (store.saved[f.family]) delete store.saved[f.family]; else store.saved[f.family] = new Date().toISOString();
+  persist(); libDirty = true; renderDetail();
+};
+$('dShelf').onclick = () => {
+  const f = famBy(detailFam); if (!f) return;
+  openMenu($('dShelf'), { title: 'Move to shelf', items: shelfItems(), value: shelfOf(f), onPick: (v) => {
+    if (v === f.auto) delete store.moves[f.family]; else store.moves[f.family] = v;
+    persist(); libDirty = true; renderDetail();
+  } });
+};
+$('dHide').onclick = () => {
+  const f = famBy(detailFam); if (!f) return;
+  const from = shelfOf(f), to = from === 'Hidden' ? (f.auto === 'Hidden' ? 'Unsorted' : f.auto) : 'Hidden';
+  if (to === f.auto) delete store.moves[f.family]; else store.moves[f.family] = to;
+  persist(); libDirty = true; renderDetail();
+  toast((to === 'Hidden' ? 'Hid ' : 'Moved ') + f.family + (to === 'Hidden' ? '' : ' to ' + to), () => { if (from === f.auto) delete store.moves[f.family]; else store.moves[f.family] = from; persist(); renderDetail(); });
+};
+$('dPlay').onclick = () => { pg.heading = detailFam; suggestFor(true); savePg(); history.replaceState('', '', location.pathname + location.search); openPlayground(); };
+let noteTimer;
+$('dNote').oninput = (e) => { clearTimeout(noteTimer); const name = detailFam, v = e.target.value; noteTimer = setTimeout(() => { if (v.trim()) store.notes[name] = v; else delete store.notes[name]; persist(); }, 300); };
+$('dPairs').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-dp]'); if (!b) return;
+  const f = famBy(detailFam), body = famBy(b.dataset.b); if (!f || !body) return;
+  const cap = captionFor(body);
+  if (b.dataset.dp === 'play') { Object.assign(pg, { heading: f.family, body: body.family, caption: cap.family, reason: '' }); savePg(); history.replaceState('', '', location.pathname + location.search); openPlayground(); return; }
+  const k = [f.family, body.family, cap.family].join('|'), idx = store.pairs.findIndex((x) => x.k === k);
+  if (idx >= 0) store.pairs.splice(idx, 1);
+  else store.pairs.unshift({ k, heading: f.family, body: body.family, caption: cap.family, bg: pg.bg, head: b.closest('.pcell').querySelector('.ph').textContent, text: PAIR_BODY, at: new Date().toISOString() });
+  persist(); renderDetail();
+  if (idx < 0) toast('Pair saved. Find it under Saved.', null);
+});
+
 /* ---------- start over ---------- */
 $('startOver').onclick = () => $('dlgStart').showModal();
 $('dlgCancel').onclick = () => $('dlgStart').close();
@@ -1643,6 +1889,7 @@ if (!families.length) show('v-onboard');
 else if (store.lastView === 'playground') openPlayground();
 else if (store.lastView === 'library' || !overall().left) openLibrary();
 else enterSort({ welcome: true });
+if (families.length && location.hash.startsWith('#font/')) route();
 upgradeMeta();
 })();
 </script>
