@@ -1,0 +1,1648 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kept — your Font Book, sorted</title>
+<meta name="description" content="Kept reads the fonts on your Mac, sorts them onto shelves, and helps you keep the good ones. Free, private, nothing uploaded.">
+<meta name="theme-color" content="#F4F3F0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B0B0A" media="(prefers-color-scheme: dark)">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Kept — your Font Book, sorted">
+<meta property="og:description" content="Sort the fonts on your Mac onto shelves, keep the ones you love, and try them together in the Playground.">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@400;500&family=Instrument+Serif&display=swap">
+<style>
+:root{--bg:#F4F3F0;--surface:#FFFFFF;--ink:#0E0E0D;--ink2:#5E5D59;--line:#DCDAD5;--chip:#EAE8E3;--brand:#E0261A;color-scheme:light}
+:root[data-theme="dark"]{--bg:#0B0B0A;--surface:#151514;--ink:#EDECE8;--ink2:#9A9893;--line:#2A2927;--chip:#1F1E1C;--brand:#FF4433;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:'Geist',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+a{color:var(--ink)}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.mono{font-family:'Geist Mono',ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+[hidden]{display:none!important}
+.hdr nav[hidden]{display:flex!important;visibility:hidden}
+.navlib{font-size:12px;margin-left:8px}
+
+/* header */
+.hdr{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:12px 32px;padding:16px 32px;position:sticky;top:0;z-index:20;background:var(--bg)}
+.logo{font-family:'Geist',sans-serif;font-weight:400;font-size:22px;line-height:1;letter-spacing:.14em;text-transform:uppercase;color:var(--brand);text-decoration:none}
+.hdr nav{display:flex;gap:28px;font-size:12px}
+.nl{background:none;border:0;padding:14px 0;cursor:pointer;color:var(--ink2);text-decoration:none}
+.nl[aria-current="page"]{color:var(--ink);text-decoration:underline;text-underline-offset:6px}
+.hdr .right{display:flex;align-items:center;justify-content:flex-end;gap:16px}
+.search{display:flex;align-items:center;gap:8px;height:44px;color:var(--ink2)}
+.search input{border:0;outline:none;background:transparent;color:var(--ink);font-size:14px;width:120px}
+.tg{width:44px;height:44px;margin-right:-12px;padding:0;border:0;background:transparent;color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center}
+.tg svg{transition:transform 420ms cubic-bezier(.6,0,.2,1)}
+.tg:hover svg,.tg:focus-visible svg{transform:rotate(180deg)}
+@media (max-width:720px){.hdr{grid-template-columns:1fr auto;padding:12px 16px}.hdr nav{grid-column:1/-1;grid-row:2}.search input{width:84px}}
+
+/* shared controls + hover rules */
+.bp{height:48px;padding:0 28px;border-radius:999px;border:0;background:var(--ink);color:var(--bg);font-size:15px;cursor:pointer;display:inline-flex;align-items:center;gap:10px;text-decoration:none;white-space:nowrap}
+.bs{height:48px;padding:0 24px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--ink);font-size:15px;cursor:pointer;display:inline-flex;align-items:center;gap:10px;white-space:nowrap}
+.bt{height:44px;padding:0;border:0;background:transparent;color:var(--ink2);font-size:15px;cursor:pointer;text-decoration:none}
+.nl,.tb,.bt,.bm,.bp,.bs,.dd,.mi,.shelfrow{transition:color .2s ease,opacity .2s ease,border-color .2s ease}
+.nl:hover,.tb:hover,.bt:hover,.bm:hover,.dd:hover{--ink2:var(--ink);color:var(--ink)}
+.bt:hover{text-decoration:underline;text-underline-offset:4px}
+.bp:hover{opacity:.82}
+.bs:hover{border-color:var(--ink)}
+.nl[aria-current="page"]:hover,.tb[aria-pressed="true"]:hover,.bm[aria-pressed="true"]:hover{opacity:.7}
+.bm{width:44px;height:44px;margin:-12px -12px -12px 0;border:0;background:transparent;color:var(--ink2);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;flex:none}
+.bm[aria-pressed="true"]{color:var(--ink)}
+.bm svg{transition:fill .2s ease}
+.bm[aria-pressed="false"]:hover svg{fill:currentColor}
+.hv,.hv *{transition:color .2s ease,opacity .2s ease,border-color .2s ease,box-shadow .2s ease}
+.hv:hover,.hv:has(:focus-visible),.hv.menu-open{--ink2:var(--ink)}
+.hv-c:hover,.hv-c:has(:focus-visible),.hv-c.menu-open{position:relative;z-index:1;border-color:var(--ink);box-shadow:-1px 0 0 0 var(--ink),0 -1px 0 0 var(--ink),-1px -1px 0 0 var(--ink)}
+.hv-r:hover,.hv-r:has(:focus-visible),.hv-r.menu-open{position:relative;z-index:1;border-bottom-color:var(--ink);box-shadow:0 -1px 0 0 var(--ink),inset 1px 0 0 0 var(--ink),inset -1px 0 0 0 var(--ink)}
+.hv .reveal{opacity:0}.hv:hover .reveal,.hv:has(:focus-visible) .reveal,.hv.menu-open .reveal{opacity:1}
+@media (hover:none){.hv .reveal{opacity:1}}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{transition:none!important}}
+
+/* dropdown trigger + menu (replaces native selects) */
+.dd{display:inline-flex;align-items:center;gap:8px;height:44px;padding:0;border:0;background:transparent;color:var(--ink);font-size:13px;cursor:pointer;white-space:nowrap}
+.dd.quiet{color:var(--ink2);height:32px}
+.dd svg{flex:none;transition:transform .2s ease}
+.dd[aria-expanded="true"] svg{transform:rotate(180deg)}
+.menu{position:absolute;z-index:60;min-width:224px;padding:12px 0;background:var(--bg);border:1px solid var(--ink);box-shadow:0 12px 32px rgba(0,0,0,.08)}
+.menu .mt{display:block;padding:4px 20px 10px;font-size:11px;color:var(--ink2)}
+.mi{display:flex;align-items:center;gap:14px;width:100%;height:40px;padding:0 20px;border:0;background:transparent;color:var(--ink2);font-size:15px;cursor:pointer;text-align:left;outline:none}
+.mi .dot{width:10px;height:10px;border-radius:50%;border:1px solid currentColor;flex:none;transition:background-color .2s ease}
+.mi:hover,.mi:focus-visible{color:var(--ink)}
+.mi:hover .dot,.mi:focus-visible .dot{background:currentColor}
+.mi:focus-visible{box-shadow:inset 2px 0 0 var(--ink)}
+.mi[aria-checked="true"]{color:var(--ink)}
+.mi[aria-checked="true"] .dot{background:currentColor}
+.mi[aria-checked="true"]:hover{opacity:.7}
+.mi small{margin-left:auto;font-family:'Geist Mono',monospace;font-size:10px;color:var(--ink2)}
+.msep{height:1px;background:var(--line);margin:8px 20px}
+
+/* filter panel */
+.fpanel{position:absolute;z-index:60;width:340px;max-width:calc(100vw - 32px);padding:24px 28px 20px;background:var(--bg);border:1px solid var(--ink);box-shadow:0 12px 32px rgba(0,0,0,.08);display:flex;flex-direction:column;gap:24px}
+.fp-head{display:flex;justify-content:space-between;align-items:center;font-size:18px}
+.reset{width:44px;height:44px;margin:-12px -12px -12px 0;border:0;background:transparent;color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:opacity .2s ease}
+.reset:disabled{opacity:.3;cursor:default}
+.reset:not(:disabled):hover svg{transform:rotate(-90deg)}
+.reset svg{transition:transform .3s ease}
+.fp-sec{display:flex;flex-direction:column;gap:6px}
+.fp-t{display:flex;justify-content:space-between;align-items:baseline;font-size:15px}
+.fp-t span{font-family:'Geist Mono',monospace;font-size:11px;color:var(--ink2)}
+.fp-ends{display:flex;justify-content:space-between;align-items:flex-end;font-size:11px;color:var(--ink2);font-family:'Geist Mono',monospace;user-select:none}
+.fp-ends.glyphs{font-family:'Geist',sans-serif;font-size:20px;line-height:1;color:var(--ink2);padding:0 2px}
+.fp-foot{display:flex;justify-content:space-between;align-items:center;padding-top:16px;border-top:1px solid var(--line);font-size:13px;color:var(--ink2)}
+.fp-note{font-size:13px;line-height:1.5;color:var(--ink2);border-left:1px solid var(--ink);padding-left:12px}
+.dual{position:relative;height:28px;--a:0;--b:1}
+.dual .track,.dual .fill{position:absolute;top:50%;height:1px}
+.dual .track{left:0;right:0;background:var(--line)}
+.dual .fill{left:calc(6px + var(--a) * (100% - 12px));width:calc((var(--b) - var(--a)) * (100% - 12px));background:var(--ink)}
+.dual input{position:absolute;inset:0;width:100%;height:28px;margin:0;-webkit-appearance:none;appearance:none;background:transparent;pointer-events:none}
+.dual input::-webkit-slider-runnable-track{height:28px;background:transparent}
+.dual input::-moz-range-track{background:transparent}
+.dual input::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;pointer-events:auto;width:12px;height:12px;margin-top:8px;border-radius:50%;background:var(--bg);border:1px solid var(--ink);cursor:pointer;transition:background-color .2s ease}
+.dual input::-moz-range-thumb{pointer-events:auto;width:12px;height:12px;border-radius:50%;background:var(--bg);border:1px solid var(--ink);cursor:pointer}
+.dual input:hover::-webkit-slider-thumb,.dual input:focus-visible::-webkit-slider-thumb{background:var(--ink)}
+.dual input:hover::-moz-range-thumb{background:var(--ink)}
+.dual input:focus-visible{outline:none}
+.fbtn small{font-family:'Geist Mono',monospace;font-size:10px;color:var(--ink2)}
+
+/* onboarding */
+.onb{max-width:1360px;margin:0 auto;padding:72px 32px 96px;display:flex;flex-direction:column;gap:56px}
+.onb h1{margin:0;font-family:'Instrument Serif',serif;font-weight:400;font-size:clamp(56px,9vw,128px);line-height:.95;letter-spacing:-.01em;max-width:11ch}
+.onb .lede{margin:0;max-width:52ch;font-size:18px;line-height:1.55;color:var(--ink2)}
+.onb .actions{display:flex;flex-wrap:wrap;align-items:center;gap:16px 32px}
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:32px;border-top:1px solid var(--line);padding-top:20px}
+.steps div{display:flex;flex-direction:column;gap:8px;font-size:15px;line-height:1.5;color:var(--ink2)}
+.steps b{font-weight:500;color:var(--ink)}
+@media (max-width:720px){.steps{grid-template-columns:1fr;gap:20px}.onb{padding:40px 16px 64px}}
+.note{border-left:1px solid var(--ink);padding:4px 0 4px 16px;max-width:60ch;font-size:15px;line-height:1.55}
+.note p{margin:0}.note p+p{margin-top:8px;color:var(--ink2)}
+.drop{border:1px dashed var(--line);padding:32px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px 32px;transition:border-color .2s ease}
+.drop:hover,.drop.over{border-color:var(--ink)}
+.drop span{font-size:15px;line-height:1.5;color:var(--ink2);max-width:56ch}
+.drop span b{font-weight:500;color:var(--ink)}
+.dragcover{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;align-items:center;justify-content:center;border:1px solid var(--ink);margin:16px;font-family:'Instrument Serif',serif;font-size:clamp(40px,6vw,80px);pointer-events:none}
+
+/* loading */
+.load{max-width:1360px;margin:0 auto;padding:72px 32px;min-height:70vh;display:flex;flex-direction:column;gap:32px}
+.load .count{display:flex;justify-content:space-between;align-items:baseline;gap:16px;font-size:12px;color:var(--ink2)}
+.bar{height:1px;background:var(--line)}.bar i{display:block;height:1px;width:0;background:var(--ink);transition:width .3s ease}
+.load .now{font-size:clamp(56px,10vw,140px);line-height:1.02;overflow-wrap:anywhere;min-height:2.1em}
+.load .meta{font-size:12px;color:var(--ink2)}
+
+/* sorting */
+.srt{max-width:1360px;margin:0 auto;padding:48px 32px 96px;display:flex;flex-wrap:wrap;gap:64px}
+@media (max-width:720px){.srt{padding:24px 16px 64px;gap:48px}}
+.lbl{font-size:11px;color:var(--ink2)}
+.sum{flex:1 1 320px;min-width:0;display:flex;flex-direction:column;gap:28px}
+.sum h1{margin:16px 0 0;font-family:'Instrument Serif',serif;font-weight:400;font-size:56px;line-height:1}
+.sum .pick{margin:0;font-size:15px;color:var(--ink)}
+.shelflist{display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.shelfrow{position:relative;display:flex;justify-content:space-between;align-items:baseline;gap:16px;width:100%;padding:16px 0;border:0;border-bottom:1px solid var(--line);background:transparent;color:var(--ink2);font-size:15px;cursor:pointer;text-align:left}
+.shelfrow .ct{font-family:'Geist Mono',monospace;font-size:12px;color:var(--ink2);display:flex;align-items:center;gap:6px}
+.shelfrow i{position:absolute;left:0;bottom:-1px;height:1px;width:calc(var(--p) * 100%);background:var(--ink);transition:width .3s ease}
+.shelfrow:hover{color:var(--ink);--ink2:var(--ink)}
+.shelfrow[aria-current="true"]{color:var(--ink)}
+.shelfrow[aria-current="true"] .nm{text-decoration:underline;text-underline-offset:6px}
+.shelfrow[aria-current="true"]:hover{opacity:.7}
+.shelfrow.done .nm{color:var(--ink2)}
+.shelfrow.muted{cursor:default;color:var(--ink2)}
+.shelfrow.muted:hover{color:var(--ink2)}
+.sum p.fine{margin:0;font-size:13px;line-height:1.5;color:var(--ink2)}
+.tri{flex:999 1 560px;min-width:0;display:flex;flex-direction:column;gap:24px}
+.trihead{display:flex;justify-content:space-between;align-items:center;gap:16px}
+.tricard{display:flex;flex-direction:column;gap:20px;padding:40px 0 32px;min-height:380px;justify-content:center;transition:opacity .15s ease}
+.tricard.swap{opacity:0}
+.trimeta{display:flex;align-items:center;gap:20px}
+.triname{font-size:clamp(56px,9vw,128px);line-height:1.02;overflow-wrap:anywhere}
+.tripan{font-size:26px;line-height:1.3;color:var(--ink2);overflow-wrap:anywhere}
+.triact{display:flex;flex-wrap:wrap;align-items:center;gap:12px 32px;padding-top:24px;border-top:1px solid var(--line)}
+.triact .round{width:48px;height:48px;margin:0;border:1px solid var(--line);border-radius:50%;color:var(--ink)}
+.triact .round:hover{border-color:var(--ink)}
+.triact .golib{margin-left:auto}
+.saved-note{display:flex;align-items:center;gap:10px;margin:0;font-size:13px;line-height:1.5;color:var(--ink2)}
+kbd{font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:.06em;opacity:.55;margin-left:6px}
+@media (hover:none){kbd{display:none}}
+.state{display:flex;flex-direction:column;justify-content:center;gap:24px;padding:48px 0;min-height:380px}
+.state h2{margin:0;font-family:'Instrument Serif',serif;font-weight:400;font-size:clamp(48px,7vw,80px);line-height:1}
+.state p{margin:0;max-width:48ch;font-size:18px;line-height:1.55;color:var(--ink2)}
+.state p b{font-weight:500;color:var(--ink)}
+.state .acts{display:flex;flex-wrap:wrap;gap:12px 16px}
+
+/* library */
+.lib{max-width:1360px;margin:0 auto;padding:40px 32px 96px;display:flex;flex-direction:column}
+@media (max-width:720px){.lib{padding:24px 16px 64px}}
+.resume{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px 32px;padding:0 0 20px;margin-bottom:32px;border-bottom:1px solid var(--line)}
+.resume p{margin:0;font-size:15px;line-height:1.5}
+.resume p span{color:var(--ink2)}
+.resume .bs{height:40px;font-size:14px}
+.lib-top{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:16px}
+.lib-top h1{margin:0;font-family:'Instrument Serif',serif;font-weight:400;font-size:clamp(48px,6vw,72px);line-height:1}
+.lib-top .meta{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 24px;font-size:11px;color:var(--ink2)}
+.shelves{display:flex;flex-wrap:wrap;gap:4px 28px;margin-top:12px}
+.tb{height:44px;padding:0;border:0;background:transparent;color:var(--ink2);font-size:15px;cursor:pointer;display:flex;align-items:baseline;gap:6px;text-underline-offset:6px}
+.tb[aria-pressed="true"]{color:var(--ink);text-decoration:underline}
+.tb small{font-family:'Geist Mono',monospace;font-size:10px;color:var(--ink2)}
+.tb.sep{margin-left:auto}
+.toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:4px 28px;margin:24px 0 32px;border-bottom:1px solid var(--line)}
+.toolbar .pv{flex:999 1 280px;min-width:0;height:56px;border:0;outline:none;background:transparent;font-size:18px;padding:0}
+.toolbar .ctl{flex:1 1 auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:4px 28px}
+.toolbar .lab{display:flex;align-items:center;gap:10px;font-size:10px;color:var(--ink2)}
+.thin{-webkit-appearance:none;appearance:none;height:44px;width:96px;background:transparent;cursor:pointer;margin:0}
+.thin::-webkit-slider-runnable-track{height:1px;background:var(--ink2)}
+.thin::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:9px;height:9px;border-radius:50%;background:var(--ink);margin-top:-4px}
+.thin::-moz-range-track{height:1px;background:var(--ink2)}
+.thin::-moz-range-thumb{width:9px;height:9px;border:0;border-radius:50%;background:var(--ink)}
+.views{display:flex}
+.views .tb{width:40px;justify-content:center;align-items:center;text-decoration:none}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,480px),1fr));border-top:1px solid var(--line);border-left:1px solid var(--line)}
+.cell{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:24px 28px 20px;display:flex;flex-direction:column;gap:28px;min-height:280px;min-width:0;content-visibility:auto;contain-intrinsic-size:auto 300px}
+.rows{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
+.row{display:flex;flex-direction:column;gap:32px;padding:44px 24px 40px;border-bottom:1px solid var(--line);min-width:0;content-visibility:auto;contain-intrinsic-size:auto 260px}
+.row.big{gap:40px;padding:48px 24px 56px}
+.head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px 24px}
+.name{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;font-size:15px;color:var(--ink2);min-width:0}
+.name b{font-weight:600;color:var(--ink)}
+.cell .name{font-size:14px}
+.cell .name b{color:var(--ink2)}
+.tag{font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2)}
+.spec{margin:0;line-height:1.1;overflow-wrap:anywhere}
+.row .spec{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal;padding-bottom:.12em}
+.foot{margin-top:auto;display:flex;justify-content:space-between;align-items:center;gap:16px;font-size:13px;color:var(--ink2)}
+.empty{padding:96px 0;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:16px;align-items:flex-start}
+.empty h2{margin:0;font-family:'Instrument Serif',serif;font-weight:400;font-size:44px;line-height:1.1}
+.empty p{margin:0;font-size:15px;line-height:1.5;color:var(--ink2);max-width:52ch}
+.toast{position:fixed;left:50%;bottom:32px;transform:translateX(-50%);display:flex;align-items:center;gap:20px;padding:0 8px 0 20px;height:48px;border-radius:999px;background:var(--ink);color:var(--bg);font-size:14px;white-space:nowrap;z-index:40}
+.toast button{height:36px;padding:0 14px;border:0;border-radius:999px;background:transparent;color:var(--bg);font-size:13px;cursor:pointer;text-decoration:underline;text-underline-offset:4px}
+
+/* playground */
+.play{display:flex;flex-wrap:wrap;align-items:stretch;border-top:1px solid var(--line);min-height:calc(100vh - 76px)}
+.pg-l,.pg-r{flex:1 1 280px;max-width:340px;min-width:0;padding:24px;display:flex;flex-direction:column;gap:24px}
+.pg-l{border-right:1px solid var(--line)}
+.pg-r{border-left:1px solid var(--line)}
+.pg-sec{display:flex;flex-direction:column;gap:12px}
+.roles{display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.role{display:flex;flex-direction:column;align-items:flex-start;gap:6px;width:100%;padding:14px 16px;border:0;border-bottom:1px solid var(--line);background:transparent;color:var(--ink2);cursor:pointer;text-align:left;position:relative;transition:color .2s ease,box-shadow .2s ease}
+.role .mono{font-size:10px}
+.role .fn{font-size:20px;line-height:1.15;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.role:hover{color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.role[aria-pressed="true"]{color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.role[aria-pressed="true"]:hover{opacity:.7}
+.pg-sug{height:44px;font-size:14px;justify-content:center}
+.pg-reason{margin:0;font-size:13px;line-height:1.55;color:var(--ink2);border-left:1px solid var(--ink);padding-left:12px}
+.pg-src{display:flex;gap:20px}
+.pg-src .tb{height:36px;font-size:13px}
+.pg-search{height:40px;border:0;border-bottom:1px solid var(--line);outline:none;background:transparent;font-size:14px;padding:0}
+.pg-search:focus{border-bottom-color:var(--ink)}
+.pg-list{display:flex;flex-direction:column;max-height:420px;overflow-y:auto;margin:0 -8px}
+.pf{display:flex;align-items:center;gap:12px;width:100%;min-height:44px;padding:0 8px;border:0;background:transparent;color:var(--ink2);cursor:pointer;text-align:left;transition:color .2s ease}
+.pf .dot{width:8px;height:8px;border-radius:50%;border:1px solid currentColor;flex:none;transition:background-color .2s ease}
+.pf .nm{flex:1;min-width:0;font-size:18px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pf small{font-family:'Geist Mono',monospace;font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2);flex:none}
+.pf:hover{color:var(--ink)}.pf:hover .dot{background:currentColor}
+.pf[aria-selected="true"]{color:var(--ink)}.pf[aria-selected="true"] .dot{background:currentColor}
+.pf[aria-selected="true"]:hover{opacity:.7}
+.pg-empty{font-size:13px;line-height:1.5;color:var(--ink2);padding:8px}
+.pg-c{flex:999 1 480px;min-width:0;padding:28px 24px 40px;display:flex;flex-direction:column;align-items:center;gap:12px;background-color:var(--bg);background-image:radial-gradient(var(--line) 1px,transparent 1px);background-size:20px 20px}
+.pg-meta{width:100%;max-width:560px;display:flex;justify-content:space-between;font-size:10px;color:var(--ink2)}
+.frame{width:100%;max-width:560px;aspect-ratio:4/5;padding:48px 44px;display:flex;flex-direction:column;justify-content:space-between;gap:24px;box-shadow:0 1px 2px rgba(0,0,0,.18),0 12px 40px rgba(0,0,0,.12);transition:background-color .2s ease,color .2s ease;overflow:hidden}
+.frame.r11{aspect-ratio:1/1}.frame.r169{aspect-ratio:16/9;max-width:760px;padding:36px 44px}
+.frame [contenteditable]{outline:none;border-radius:2px}
+.frame [contenteditable]:hover{box-shadow:0 0 0 1px currentColor}
+.frame [contenteditable]:focus{box-shadow:0 0 0 1px currentColor}
+.f-issue{font-size:12px;letter-spacing:.1em;text-transform:uppercase;opacity:.75}
+.f-main{display:flex;flex-direction:column;gap:20px}
+.f-head{margin:0;font-weight:400;line-height:1;letter-spacing:-.01em;overflow-wrap:anywhere}
+.f-body{margin:0;font-size:16px;line-height:1.6;opacity:.85}
+.f-foot{font-size:11px;letter-spacing:.08em;text-transform:uppercase;opacity:.7}
+.pg-hint{margin:0;font-size:12px;color:var(--ink2)}
+.sw{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.sw button{height:40px;border:1px solid var(--line);cursor:pointer;padding:0;transition:box-shadow .2s ease}
+.sw button:hover{box-shadow:0 0 0 2px var(--bg),0 0 0 3px var(--ink)}
+.sw button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--bg),0 0 0 3px var(--ink)}
+.sw button[aria-pressed="true"]:hover{opacity:.7}
+.hex{display:flex;align-items:center;gap:10px;height:40px;border-bottom:1px solid var(--line);font-size:10px;color:var(--ink2)}
+.hex:focus-within{border-bottom-color:var(--ink)}
+.hex input{border:0;outline:none;background:transparent;font-family:'Geist Mono',monospace;font-size:13px;width:100%;min-width:0;color:var(--ink)}
+.opts{display:flex;flex-wrap:wrap;gap:4px 20px}
+.opts .tb{height:36px;font-size:14px}
+.pair{display:flex;flex-direction:column;gap:8px;padding-top:20px;border-top:1px solid var(--line)}
+.pair span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pgacts{display:flex;gap:8px}
+.pgacts .bs,.pgacts .bp{height:40px;padding:0 18px;font-size:13px}
+@media (max-width:900px){.pg-l,.pg-r{max-width:none;border:0;border-bottom:1px solid var(--line)}.pg-c{order:-1}}
+@media (max-width:720px){.pgacts .bs{display:none}.hdr .right{gap:8px}.tg{margin-right:-6px}}
+
+/* saved pairs */
+.ptabs{display:flex;gap:4px 28px;margin-top:12px}
+.pcell .ph{margin:0;line-height:1.05;letter-spacing:-.01em;overflow-wrap:anywhere}
+.pcell .pb{margin:0;font-size:16px;line-height:1.55;color:var(--ink2)}
+.pcell{min-height:380px}
+
+/* dialog */
+dialog.dlg{max-width:560px;width:calc(100vw - 32px);padding:32px;border:1px solid var(--ink);background:var(--bg);color:var(--ink)}
+dialog.dlg::backdrop{background:rgba(0,0,0,.28)}
+.dlg h2{margin:0 0 8px;font-family:'Instrument Serif',serif;font-weight:400;font-size:44px;line-height:1}
+.dlg .opt{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px 24px;padding:20px 0;border-bottom:1px solid var(--line)}
+.dlg .opt div{flex:1 1 260px;display:flex;flex-direction:column;gap:4px;font-size:15px;line-height:1.5}
+.dlg .opt span{color:var(--ink2);font-size:14px}
+.dlg .opt .bs{height:44px;font-size:14px}
+.dlg .close{display:flex;justify-content:flex-end;padding-top:20px}
+</style>
+</head>
+<body>
+<header class="hdr">
+  <div><a class="logo" href="#" id="home">Kept</a></div>
+  <nav aria-label="Main" id="mainnav" hidden>
+    <button type="button" class="nl mono" data-page="sort">Sort</button>
+    <button type="button" class="nl mono" data-page="saved">Saved</button>
+    <button type="button" class="nl mono" data-page="playground">Playground</button>
+  </nav>
+  <div class="right">
+    <div class="pgacts" id="pgActs" hidden>
+      <button type="button" class="bs" id="pgExport">Export PNG</button>
+      <button type="button" class="bp" id="pgSave" aria-pressed="false">Save pair</button>
+    </div>
+    <label class="search" id="searchbox" hidden>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <span class="sr">Search fonts</span>
+      <input type="search" id="q" placeholder="Search">
+    </label>
+    <button type="button" class="nl mono navlib" id="navLib" data-page="library" hidden>Library</button>
+    <button type="button" class="tg" id="theme" aria-label="Switch to dark mode" title="Switch to dark mode">
+      <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.25" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M10 1.75a8.25 8.25 0 0 1 0 16.5z" fill="currentColor"/></svg>
+    </button>
+  </div>
+</header>
+
+<!-- 1. Onboarding / permission -->
+<main class="onb" id="v-onboard" hidden>
+  <h1>Your Font Book, sorted.</h1>
+  <p class="lede">Kept reads the fonts installed on your Mac, the same ones Font Book shows, and puts them on shelves: serif, sans-serif, mono, display and script. System and language fonts go out of the way. Nothing is uploaded; your fonts stay on your computer.</p>
+  <div class="actions">
+    <button type="button" class="bp" id="allow">Allow access to fonts</button>
+    <button type="button" class="bt" id="pickFiles">Or choose font files</button>
+    <button type="button" class="bt" id="restoreStart">Restore a backup</button>
+  </div>
+  <div class="note" id="noteUnsupported" hidden>
+    <p id="unsTitle">This browser can’t see installed fonts.</p>
+    <p id="unsText">Open Kept in Chrome or Edge on your Mac to bring in your whole Font Book at once. Here, you can still add font files below.</p>
+  </div>
+  <div class="note" id="noteDenied" hidden>
+    <p>Font access is blocked for this page.</p>
+    <p>Click the icon to the left of the address bar, open Site settings, set Fonts to Allow, then try again.</p>
+  </div>
+  <div class="steps">
+    <div><b>Allow access</b>Your browser asks once. Kept only reads font names and the details inside each file.</div>
+    <div><b>Kept sorts</b>Each family lands on a shelf based on how it was designed, not just its name.</div>
+    <div><b>Keep what you love</b>Go shelf by shelf, at your own pace. Your progress is saved, so you can stop and come back anytime.</div>
+  </div>
+  <div class="drop" id="dropzone">
+    <span><b>Drop font files or a folder here.</b> Works in any browser. Your own fonts live in ~/Library/Fonts; in the file picker, press ⇧⌘G and paste that path.</span>
+    <button type="button" class="bt" id="pickFolder">Choose folder</button>
+  </div>
+  <input type="file" id="fileInput" accept=".ttf,.otf,.ttc,.woff,.woff2" multiple hidden>
+  <input type="file" id="folderInput" webkitdirectory multiple hidden>
+</main>
+
+<!-- 2. Loading -->
+<main class="load" id="v-load" hidden aria-live="polite">
+  <div class="count mono"><span id="loadLabel">Reading your fonts</span><span id="loadNum"></span></div>
+  <div class="bar"><i id="loadBar"></i></div>
+  <div class="now" id="loadNow"></div>
+  <div class="meta mono" id="loadMeta"></div>
+</main>
+
+<!-- 3. Sorting: pick a shelf, keep what you love -->
+<main class="srt" id="v-sort" hidden>
+  <section class="sum" aria-labelledby="sumTitle">
+    <div>
+      <span class="mono lbl">01 · Sorted for you</span>
+      <h1 id="sumTitle"></h1>
+    </div>
+    <p class="pick">Pick a shelf to go through.</p>
+    <div class="shelflist" id="shelfList" role="list"></div>
+    <p class="fine">Sorted from the design data inside each font, then its name. Move one and Kept remembers.</p>
+  </section>
+  <section class="tri" aria-label="Keep what you love">
+    <div class="trihead"><span class="mono lbl">02 · Keep what you love</span><span class="mono lbl" id="triCount"></span></div>
+    <div class="bar"><i id="triBar"></i></div>
+    <div id="triState" class="state" hidden></div>
+    <div id="triLive" hidden>
+      <div class="tricard" id="triCard">
+        <div class="trimeta"><span class="mono lbl" id="triLabel"></span><button type="button" class="dd quiet" id="triShelf" aria-haspopup="menu" aria-expanded="false"></button></div>
+        <div class="triname" id="triName"></div>
+        <div class="tripan" id="triPan">Sphinx of black quartz, judge my vow. 0123456789</div>
+      </div>
+      <div class="triact">
+        <button type="button" class="bt" id="tHide">Hide<kbd>H</kbd></button>
+        <button type="button" class="bp" id="tKeep">Keep<kbd style="opacity:.6">K</kbd></button>
+        <button type="button" class="bm round" id="tFav" aria-pressed="false" aria-label="Keep and bookmark (B)" title="Keep and bookmark (B)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg></button>
+        <button type="button" class="bt" id="tUndo" style="font-size:13px">Undo<kbd>Z</kbd></button>
+        <button type="button" class="bs golib" data-golib>Go to library</button>
+      </div>
+      <p class="saved-note" style="margin-top:16px"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg><span id="savedNote">Saved as you go. Leave anytime and you’ll continue from this font.</span></p>
+    </div>
+  </section>
+</main>
+
+<!-- 4. Library -->
+<main class="lib" id="v-lib" hidden>
+  <div class="resume" id="resume" hidden>
+    <p id="resumeTitle"></p>
+    <button type="button" class="bs" id="resumeBtn">Continue sorting</button>
+  </div>
+  <div class="lib-top">
+    <h1 id="libTitle">All fonts</h1>
+    <div class="meta mono"><span id="libStats"></span><button type="button" class="bt mono" id="rescan" style="font-size:11px">Rescan</button><button type="button" class="bt mono" id="backupBtn" style="font-size:11px">Backup</button><button type="button" class="bt mono" id="startOver" style="font-size:11px">Start over</button></div>
+  </div>
+  <div class="shelves" role="group" aria-label="Shelves" id="shelves"></div>
+  <div class="ptabs" role="group" aria-label="Show" id="savedTabs" hidden></div>
+  <div class="toolbar" id="toolbar">
+    <label style="flex:999 1 280px;min-width:0"><span class="sr">Preview text</span><input class="pv" id="pv" type="text" placeholder="Type to preview…"></label>
+    <div class="ctl">
+      <label class="lab"><span class="mono">Size</span><input class="thin" id="size" type="range" min="24" max="96" step="4" value="44"><span class="mono" id="sizeVal" style="width:20px">44</span></label>
+      <div class="lab"><span class="mono" id="sortLab">Sort</span><button type="button" class="dd" id="sortBtn" aria-haspopup="menu" aria-expanded="false" aria-describedby="sortLab"></button></div>
+      <button type="button" class="dd fbtn" id="filterBtn" aria-haspopup="dialog" aria-expanded="false"></button>
+      <div class="views" role="group" aria-label="View" id="views">
+        <button type="button" class="tb" data-view="grid" aria-label="Grid view" title="Grid view" aria-pressed="true"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><rect x="1.5" y="1.5" width="5.5" height="13"/><rect x="9" y="1.5" width="5.5" height="13"/></svg></button>
+        <button type="button" class="tb" data-view="list" aria-label="List view" title="List view" aria-pressed="false"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M1.5 3h13M1.5 8h13M1.5 13h13"/></svg></button>
+        <button type="button" class="tb" data-view="display" aria-label="Display view" title="Display view" aria-pressed="false"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M3 13L7 3h2l4 10M4.6 9.5h6.8"/></svg></button>
+      </div>
+    </div>
+  </div>
+  <div id="results"></div>
+  <div id="sentinel" style="height:1px"></div>
+</main>
+
+<!-- 5. Playground -->
+<main class="play" id="v-play" hidden>
+  <aside class="pg-l" aria-label="Text styles and fonts">
+    <div class="pg-sec">
+      <span class="mono lbl">Text styles</span>
+      <div class="roles" id="pgRoles"></div>
+    </div>
+    <div class="pg-sec">
+      <button type="button" class="bs pg-sug" id="pgSuggest"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M6 18l2.5-2.5M15.5 8.5L18 6"/></svg><span id="pgSuggestLabel">Suggest body + caption</span></button>
+      <p class="pg-reason" id="pgReason" hidden></p>
+    </div>
+    <div class="pg-sec" style="min-height:0">
+      <span class="mono lbl" id="pgListTitle"></span>
+      <div class="pg-src" role="group" aria-label="Font source" id="pgSrc"></div>
+      <label><span class="sr">Find a font</span><input class="pg-search" id="pgSearch" type="search" placeholder="Find a font"></label>
+      <div class="pg-list" id="pgList" role="listbox"></div>
+    </div>
+  </aside>
+  <section class="pg-c" aria-label="Frame">
+    <div class="pg-meta mono"><span id="pgRatioLabel"></span><span id="pgBgLabel"></span></div>
+    <div class="frame" id="frame">
+      <span class="f-issue" data-role="caption" data-t="issue" contenteditable="plaintext-only" spellcheck="false"></span>
+      <div class="f-main">
+        <h2 class="f-head" data-role="heading" data-t="head" contenteditable="plaintext-only" spellcheck="false"></h2>
+        <p class="f-body" data-role="body" data-t="body" contenteditable="plaintext-only" spellcheck="false"></p>
+      </div>
+      <span class="f-foot" data-role="caption" data-t="foot" contenteditable="plaintext-only" spellcheck="false"></span>
+    </div>
+    <p class="pg-hint">Click any text in the frame to edit it, or to pick its font.</p>
+  </section>
+  <aside class="pg-r" aria-label="Frame settings">
+    <div class="pg-sec">
+      <span class="mono lbl">Background</span>
+      <div class="sw" id="pgSwatches"></div>
+      <label class="hex"><span class="mono">Hex</span><input id="pgHex" type="text" maxlength="7" spellcheck="false" aria-label="Background hex color"></label>
+    </div>
+    <div class="pg-sec"><span class="mono lbl">Heading size</span><div class="opts" role="group" aria-label="Heading size" id="pgSizes"></div></div>
+    <div class="pg-sec"><span class="mono lbl">Align</span><div class="opts" role="group" aria-label="Alignment" id="pgAligns"></div></div>
+    <div class="pg-sec"><span class="mono lbl">Frame</span><div class="opts" role="group" aria-label="Frame shape" id="pgRatios"></div></div>
+    <div class="pair" id="pgPair"></div>
+  </aside>
+</main>
+
+<dialog class="dlg" id="dlgBackup" aria-labelledby="dlgBTitle">
+  <h2 id="dlgBTitle">Backup</h2>
+  <div class="opt"><div><b>Download a backup</b><span>One small file with your shelves, bookmarks, pairs and sorting progress. Your fonts themselves stay on your Mac.</span></div><button type="button" class="bs" id="dlgDownload">Download</button></div>
+  <div class="opt"><div><b>Restore from a backup</b><span>Replaces what’s here with the backup. Use it on a new browser or computer, or after clearing your browser data.</span></div><button type="button" class="bs" id="dlgRestore">Choose file</button></div>
+  <div class="close"><button type="button" class="bt" id="dlgBCancel" style="color:var(--ink)">Close</button></div>
+</dialog>
+<input type="file" id="restoreInput" accept=".json,application/json" hidden>
+
+<dialog class="dlg" id="dlgStart" aria-labelledby="dlgTitle">
+  <h2 id="dlgTitle">Start over?</h2>
+  <div class="opt"><div><b>Sort again</b><span>Every shelf goes back to unchecked and fonts you hid come back. Bookmarks, saved pairs and shelf moves stay.</span></div><button type="button" class="bs" id="dlgResort">Sort again</button></div>
+  <div class="opt"><div><b>Reset everything</b><span>Forget this library: bookmarks, pairs, moves and sorting progress. You’ll bring your fonts in again from the start.</span></div><button type="button" class="bs" id="dlgReset">Reset everything</button></div>
+  <div class="close"><button type="button" class="bt" id="dlgCancel" style="color:var(--ink)">Cancel</button></div>
+</dialog>
+
+<!-- shared menu + filter panel -->
+<div class="menu" id="menu" role="menu" hidden></div>
+<div class="fpanel" id="fpanel" role="dialog" aria-label="Filters" hidden>
+  <div class="fp-head"><span>Properties</span><button type="button" class="reset" id="fReset" aria-label="Reset filters" title="Reset filters"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4.5h4.5"/></svg></button></div>
+  <div class="fp-note" id="fNote" hidden>Weight and width need one quick rescan. <button type="button" class="bt" id="fRescan" style="height:auto;font-size:13px;color:var(--ink)">Rescan now</button></div>
+  <div class="fp-sec">
+    <div class="fp-t">No. of styles<span id="fvStyles"></span></div>
+    <div class="dual" data-k="styles"><div class="track"></div><div class="fill"></div><input type="range" class="lo" aria-label="Fewest styles"><input type="range" class="hi" aria-label="Most styles"></div>
+    <div class="fp-ends"><span>1</span><span>20+</span></div>
+  </div>
+  <div class="fp-sec">
+    <div class="fp-t">Weight<span id="fvWeight"></span></div>
+    <div class="dual" data-k="weight"><div class="track"></div><div class="fill"></div><input type="range" class="lo" aria-label="Lightest weight"><input type="range" class="hi" aria-label="Heaviest weight"></div>
+    <div class="fp-ends glyphs"><span style="font-weight:100;-webkit-text-stroke:0">A</span><span style="font-weight:300">A</span><span style="font-weight:500">A</span><span style="font-weight:700">A</span><span style="font-weight:900;-webkit-text-stroke:.6px currentColor">A</span></div>
+  </div>
+  <div class="fp-sec">
+    <div class="fp-t">Width<span id="fvWidth"></span></div>
+    <div class="dual" data-k="width"><div class="track"></div><div class="fill"></div><input type="range" class="lo" aria-label="Narrowest width"><input type="range" class="hi" aria-label="Widest width"></div>
+    <div class="fp-ends glyphs"><span style="transform:scaleX(.6)">A</span><span style="transform:scaleX(.8)">A</span><span>A</span><span style="transform:scaleX(1.2)">A</span><span style="transform:scaleX(1.45)">A</span></div>
+  </div>
+  <div class="fp-sec">
+    <div class="fp-t">x-Height<span id="fvXh"></span></div>
+    <div class="dual" data-k="xh"><div class="track"></div><div class="fill"></div><input type="range" class="lo" aria-label="Lowest x-height"><input type="range" class="hi" aria-label="Highest x-height"></div>
+    <div class="fp-ends glyphs"><span><small style="font-size:.5em">x</small>H</span><span><small style="font-size:.6em">x</small>H</span><span><small style="font-size:.7em">x</small>H</span><span><small style="font-size:.8em">x</small>H</span></div>
+  </div>
+  <div class="fp-foot"><span id="fCount"></span><button type="button" class="bt" id="fDone" style="height:32px;font-size:13px;color:var(--ink)">Done</button></div>
+</div>
+
+<div class="dragcover" id="dragcover" hidden>Drop to add fonts</div>
+<div class="toast" id="toast" role="status" hidden><span id="toastText"></span><button type="button" id="toastUndo">Undo</button></div>
+
+<script>
+(() => {
+'use strict';
+const $ = (id) => document.getElementById(id);
+const STORE = 'kept.v1';
+const SHELVES = ['Serif', 'Sans-serif', 'Mono', 'Display', 'Script', 'Unsorted'];
+const ALL_SHELVES = [...SHELVES, 'Hidden'];
+const BOOKMARK = '<svg width="16" height="16" viewBox="0 0 24 24" fill="FILL" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg>';
+const CARET = '<svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M1.5 3h7L5 7.5z" fill="currentColor"/></svg>';
+const CHECK = '<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>';
+
+/* ---------- persistence ---------- */
+const load = () => { try { return JSON.parse(localStorage.getItem(STORE)) || {}; } catch (e) { return {}; } };
+let store = load();
+for (const k of ['saved', 'moves', 'reviewed', 'reviewShelf']) store[k] = store[k] || {};
+const persist = () => { try { localStorage.setItem(STORE, JSON.stringify(store)); } catch (e) { /* storage blocked: keep working in memory */ } };
+
+/* ---------- theme ---------- */
+const applyTheme = (t) => {
+  document.documentElement.dataset.theme = t;
+  const label = t === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
+  $('theme').setAttribute('aria-label', label); $('theme').title = label;
+};
+applyTheme(store.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+$('theme').onclick = () => { store.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'; applyTheme(store.theme); persist(); };
+
+/* ---------- views ---------- */
+const show = (v) => {
+  closeMenu(); closePanel();
+  for (const id of ['v-onboard', 'v-load', 'v-sort', 'v-lib', 'v-play']) $(id).hidden = id !== v;
+  const inApp = ['v-sort', 'v-lib', 'v-play'].includes(v);
+  $('mainnav').hidden = !inApp; $('navLib').hidden = !inApp; $('pgActs').hidden = v !== 'v-play';
+  $('searchbox').hidden = !(v === 'v-lib' && ui.page === 'library');
+  if (inApp) { store.lastView = { 'v-sort': 'sort', 'v-lib': 'library', 'v-play': 'playground' }[v]; persist(); }
+  setNav(v === 'v-sort' ? 'sort' : v === 'v-play' ? 'playground' : ui.page);
+};
+
+/* ---------- font file parsing (sfnt / ttc / woff) ---------- */
+const tag4 = (dv, o) => String.fromCharCode(dv.getUint8(o), dv.getUint8(o + 1), dv.getUint8(o + 2), dv.getUint8(o + 3));
+const bytes = async (blob, off, len) => new DataView(await blob.slice(off, off + len).arrayBuffer());
+const inflate = async (buf) => new DataView(await new Response(new Blob([buf]).stream().pipeThrough(new DecompressionStream('deflate'))).arrayBuffer());
+async function tableReader(blob) {
+  const head = await bytes(blob, 0, 12);
+  if (head.byteLength < 12) return null;
+  let sig = tag4(head, 0);
+  const tables = {};
+  if (sig === 'wOFF') {
+    const n = (await bytes(blob, 12, 2)).getUint16(0);
+    const dir = await bytes(blob, 44, n * 20);
+    for (let i = 0; i < n; i++) { const o = i * 20; tables[tag4(dir, o)] = { off: dir.getUint32(o + 4), comp: dir.getUint32(o + 8), len: dir.getUint32(o + 12) }; }
+    return async (t) => { const e = tables[t]; if (!e) return null; const raw = await blob.slice(e.off, e.off + e.comp).arrayBuffer(); return e.comp < e.len ? inflate(raw) : new DataView(raw); };
+  }
+  if (sig === 'wOF2') return null;
+  let base = 0;
+  if (sig === 'ttcf') { base = (await bytes(blob, 12, 4)).getUint32(0); sig = tag4(await bytes(blob, base, 4), 0); }
+  const n = (await bytes(blob, base + 4, 2)).getUint16(0);
+  if (!n || n > 200) return null;
+  const dir = await bytes(blob, base + 12, n * 16);
+  for (let i = 0; i < n; i++) { const o = i * 16; tables[tag4(dir, o)] = { off: dir.getUint32(o + 8), len: dir.getUint32(o + 12) }; }
+  return async (t) => { const e = tables[t]; return e ? bytes(blob, e.off, e.len) : null; };
+}
+function readNames(dv) {
+  if (!dv) return {};
+  const count = dv.getUint16(2), strOff = dv.getUint16(4), out = {};
+  for (let i = 0; i < count; i++) {
+    const r = 6 + i * 12;
+    const plat = dv.getUint16(r), lang = dv.getUint16(r + 4), id = dv.getUint16(r + 6), len = dv.getUint16(r + 8), off = dv.getUint16(r + 10);
+    if (![1, 2, 4, 16, 17].includes(id)) continue;
+    const english = (plat === 3 && lang === 0x409) || (plat === 1 && lang === 0) || plat === 0;
+    if (!english || out[id]) continue;
+    const start = strOff + off;
+    if (start + len > dv.byteLength) continue;
+    let s = '';
+    if (plat === 1) { for (let j = 0; j < len; j++) s += String.fromCharCode(dv.getUint8(start + j)); }
+    else { for (let j = 0; j + 1 < len; j += 2) s += String.fromCharCode(dv.getUint16(start + j)); }
+    out[id] = s.trim();
+  }
+  return out;
+}
+function readAxes(dv) {
+  const axes = {};
+  if (!dv || dv.byteLength < 16) return axes;
+  const arr = dv.getUint16(4), count = dv.getUint16(8), size = dv.getUint16(10);
+  for (let i = 0; i < count; i++) {
+    const o = arr + i * size;
+    if (o + 16 > dv.byteLength) break;
+    axes[tag4(dv, o)] = [dv.getInt32(o + 4) / 65536, dv.getInt32(o + 12) / 65536];
+  }
+  return axes;
+}
+async function inspect(blob) {
+  const info = { familyClass: 0, panose: [], fixed: false, names: {}, axes: {} };
+  try {
+    const get = await tableReader(blob);
+    if (!get) return info;
+    const os2 = await get('OS/2');
+    if (os2 && os2.byteLength >= 42) { info.familyClass = os2.getUint8(30); for (let i = 0; i < 10; i++) info.panose.push(os2.getUint8(32 + i)); }
+    const post = await get('post');
+    if (post && post.byteLength >= 16) info.fixed = post.getUint32(12) !== 0;
+    info.names = readNames(await get('name'));
+    info.axes = readAxes(await get('fvar'));
+  } catch (e) { /* unreadable file: classify by name only */ }
+  return info;
+}
+
+/* ---------- classification ---------- */
+const HIDE = /^\.|emoji|symbol|dingbat|webdings|wingdings|lastresort|last resort|pictograph|braille|\bmath\b|devanagari|bangla|bengali|gujarati|gurmukhi|kannada|malayalam|oriya|odia|sinhala|tamil|telugu|tibetan|myanmar|khmer|\blao\b|\bthai\b|arabic|hebrew|armenian|georgian|ethiopic|cherokee|mongolian|syriac|thaana|tifinagh|kufi|naskh|nastaliq|urdu|pingfang|hiragino|heiti|songti|kaiti|stheiti|lantinghei|apple sd gothic|applegothic|applemyungjo|nanum|sukhumvit|ayuthaya|krungthep|silom|sathu|mishafi|baghdad|beirut|damascus|farah|farisi|nadeem|waseem|diwan|al bayan|al nile|al tarikh|geeza|raanana|kailasa|lahore|mukta|inai mathi|muna|euphemia|\bhei\b|\bnoto (sans|serif) (?!display|mono)[a-z]|\bipa|gothic(?=.*\b(jp|kr|sc|tc|hk)\b)|\b(jp|kr|sc|tc|hk)\b|mincho|ming|gungsuh|batang|dotum|gulim|osaka|yu gothic|yu mincho|toppan|klee|tsukushi|bitstream vera|lucida grande|system font|sf compact|sf pro|sf mono|new york/i;
+const IS_MONO = /mono|code|courier|consol|menlo|typewriter|\bplex mono|fixed|terminal|\bsono\b/i;
+const IS_SCRIPT = /script|hand|brush|marker|chalk|signature|snell|zapfino|caveat|pacifico|dancing|cursive|calligraph|savoye|bradley|noteworthy|segoe print|comic/i;
+const IS_DISPLAY = /display|poster|headline|stencil|shadow|inline|outline|unbounded|syne|impact|black ?ops|fat face|abril|bungee|rubik mono|ultra|cooper|copperplate|papyrus|herculanum|trattatello|luminari|phosphate|chalkduster|party let|marker felt|bodoni ornaments|desdemona|jazz/i;
+const IS_SANS = /sans|grotesk|grotesque|gothic|helvetica|arial|inter\b|neue|futura|avenir|gill|verdana|tahoma|trebuchet|optima|geneva|myriad|frutiger|univers|din\b|roboto|open sans|lato|montserrat|poppins|nunito|work sans|manrope|geist|hanken|space grotesk|karla|ibm plex sans|source sans|fira sans|ubuntu|cantarell|carlito|liberation sans|dejavu sans|freesans/i;
+const IS_SERIF = /serif|roman|garamond|times|georgia|baskerville|antiqua|caslon|bodoni|didot|charter|palatino|book|cambria|caladea|minion|merriweather|playfair|lora|newsreader|fraunces|crimson|spectral|tinos|cochin|hoefler|big caslon|iowan|athelas|literata|libre|old ?style|liberation serif|freeserif|century|plantin|sabon|bembo|perpetua|rockwell|clarendon|slab|courier/i;
+
+function classify(family, info) {
+  if (HIDE.test(family)) return 'Hidden';
+  const p = info.panose || [];
+  const kind = p[0] || 0, serif = p[1] || 0, prop = p[3] || 0;
+  if (kind === 5) return 'Hidden';
+  if (info.fixed || (kind === 2 && prop === 9) || IS_MONO.test(family)) return 'Mono';
+  if (kind === 3 || info.familyClass === 10 || IS_SCRIPT.test(family)) return 'Script';
+  if (info.familyClass === 12) return 'Hidden';
+  if (kind === 4 || info.familyClass === 9 || IS_DISPLAY.test(family)) return 'Display';
+  if (/sans/i.test(family)) return 'Sans-serif';
+  if ([1, 2, 3, 4, 5, 7].includes(info.familyClass)) return 'Serif';
+  if (info.familyClass === 8) return 'Sans-serif';
+  if (kind === 2 && serif >= 2 && serif <= 10) return 'Serif';
+  if (kind === 2 && serif >= 11 && serif <= 15) return 'Sans-serif';
+  if (IS_SANS.test(family)) return 'Sans-serif';
+  if (IS_SERIF.test(family)) return 'Serif';
+  return 'Unsorted';
+}
+const shapeCanvas = document.createElement('canvas');
+shapeCanvas.width = shapeCanvas.height = 160;
+const sx = shapeCanvas.getContext('2d', { willReadFrequently: true });
+function isAvailable(q) {
+  const probe = 'mmmmmmlli1WQ@';
+  for (const base of ['monospace', 'sans-serif']) {
+    sx.font = '40px ' + base; const a = sx.measureText(probe).width;
+    sx.font = '40px ' + q + ', ' + base; if (sx.measureText(probe).width !== a) return true;
+  }
+  return false;
+}
+function shapeClass(q) {
+  if (!isAvailable(q)) return null;
+  sx.clearRect(0, 0, 160, 160);
+  sx.fillStyle = '#000'; sx.textBaseline = 'alphabetic'; sx.font = '120px ' + q + ', monospace';
+  sx.fillText('I', 40, 140);
+  const px = sx.getImageData(0, 0, 160, 160).data;
+  const widths = [];
+  for (let y = 0; y < 160; y++) {
+    let lo = -1, hi = -1;
+    for (let x = 0; x < 160; x++) if (px[(y * 160 + x) * 4 + 3] > 128) { if (lo < 0) lo = x; hi = x; }
+    if (lo >= 0) widths.push(hi - lo + 1);
+  }
+  if (widths.length < 20) return null;
+  const n = widths.length, stem = widths[Math.floor(n / 2)];
+  const ends = Math.max(...widths.slice(0, Math.ceil(n * 0.08)), ...widths.slice(-Math.ceil(n * 0.08)));
+  return ends / stem > 1.6 ? 'Serif' : 'Sans-serif';
+}
+function refine(shelf, q, styles) {
+  if (shelf !== 'Unsorted') return shelf;
+  if (styles.length && styles.every((s) => /italic|oblique/i.test(s))) return 'Script';
+  return shapeClass(q) || 'Unsorted';
+}
+const quote = (family) => '"' + family.replace(/["\\]/g, '\\$&') + '"';
+const pickFace = (faces) =>
+  faces.find((f) => /^(regular|roman|book|normal|medium)$/i.test(f.style)) || faces.find((f) => !/italic|oblique/i.test(f.style)) || faces[0];
+
+/* ---------- properties: weight, width, x-height (only what fonts state reliably) ---------- */
+const WEIGHTS = [[/hairline|\bthin/i, 100], [/(extra|ultra)[ -]?light/i, 200], [/(semi|demi)[ -]?bold|\bdemi\b/i, 600], [/(extra|ultra)[ -]?bold/i, 800], [/black|heavy|\bultra\b/i, 900], [/light/i, 300], [/medium/i, 500], [/bold/i, 700]];
+const weightOf = (s) => { for (const [re, w] of WEIGHTS) if (re.test(s)) return w; return 400; };
+const WIDTHS = [[/(ultra|extra)[ -]?(condensed|compressed|narrow)/i, 2], [/semi[ -]?(condensed|narrow)/i, 4], [/condensed|compressed|narrow|\bcond\b|\bcn\b/i, 3], [/semi[ -]?(expanded|extended)/i, 6], [/(ultra|extra)[ -]?(expanded|extended)/i, 8], [/expanded|extended|\bwide\b/i, 7]];
+const widthOf = (s) => { for (const [re, w] of WIDTHS) if (re.test(s)) return w; return 5; };
+const pctToWidth = (p) => p <= 56 ? 1 : p <= 69 ? 2 : p <= 81 ? 3 : p <= 94 ? 4 : p <= 106 ? 5 : p <= 119 ? 6 : p <= 137 ? 7 : p <= 175 ? 8 : 9;
+function propsOf(family, styleStrings, axes) {
+  const ws = styleStrings.map((s) => weightOf(family + ' ' + s));
+  const wd = styleStrings.map((s) => widthOf(family + ' ' + s));
+  if (axes && axes.wght) ws.push(Math.round(axes.wght[0]), Math.round(axes.wght[1]));
+  if (axes && axes.wdth) wd.push(pctToWidth(axes.wdth[0]), pctToWidth(axes.wdth[1]));
+  return { wmin: Math.min(...ws), wmax: Math.max(...ws), wd0: Math.min(...wd), wd1: Math.max(...wd) };
+}
+function xHeightOf(q) {
+  if (!isAvailable(q)) return null;
+  sx.font = '100px ' + q + ', monospace';
+  const x = sx.measureText('x').actualBoundingBoxAscent, H = sx.measureText('H').actualBoundingBoxAscent;
+  return H > 0 && x > 0 ? Math.round((x / H) * 100) / 100 : null;
+}
+
+/* ---------- state ---------- */
+let families = store.families || [];
+const ui = { page: 'library', shelf: 'All', view: store.view || 'grid', sort: 'name', size: 44, preview: '', q: '', shown: 0, metaMissing: false };
+const shelfOf = (f) => store.moves[f.family] || f.auto;
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const styleLabel = (n) => n + (n === 1 ? ' style' : ' styles');
+const fmt = (n) => n.toLocaleString();
+
+/* ---------- loading ---------- */
+let lastPaint = 0;
+const progress = (done, total, family, css, note) => {
+  const now = performance.now();
+  if (now - lastPaint < 60 && done < total) return;
+  lastPaint = now;
+  $('loadNum').textContent = fmt(done) + ' / ' + fmt(total);
+  $('loadBar').style.width = (total ? (done / total) * 100 : 0) + '%';
+  if (family) { $('loadNow').textContent = family; $('loadNow').style.fontFamily = css; $('loadMeta').textContent = note || ''; }
+};
+
+/* ---------- import from installed fonts ---------- */
+async function importInstalled(fromLibrary) {
+  if (!('queryLocalFonts' in window)) { $('noteUnsupported').hidden = false; $('allow').hidden = true; show('v-onboard'); return; }
+  let list;
+  try { list = await window.queryLocalFonts(); }
+  catch (e) { $('noteDenied').hidden = false; show('v-onboard'); return; }
+  if (!list.length) { $('noteDenied').hidden = false; show('v-onboard'); return; }
+  show('v-load');
+  $('loadLabel').textContent = 'Sorting ' + fmt(list.length) + ' fonts';
+  const byFam = new Map();
+  for (const f of list) { if (!byFam.has(f.family)) byFam.set(f.family, []); byFam.get(f.family).push(f); }
+  const fams = [...byFam.entries()];
+  const out = new Array(fams.length);
+  let done = 0, next = 0;
+  const worker = async () => {
+    while (next < fams.length) {
+      const i = next++;
+      const [family, faces] = fams[i];
+      const q = quote(family), css = q + ', serif';
+      const styles = faces.map((f) => f.style + ' ' + f.postscriptName);
+      let info = { panose: [], familyClass: 0, fixed: false, axes: {} };
+      if (!HIDE.test(family)) { try { info = await inspect(await pickFace(faces).blob()); } catch (e) { /* name-only */ } }
+      const auto = refine(classify(family, info), q, styles);
+      out[i] = Object.assign({ family, css, styles: faces.length, auto, source: 'installed', xh: auto === 'Hidden' ? null : xHeightOf(q) }, propsOf(family, styles, info.axes));
+      done++;
+      progress(done, fams.length, family, css, auto === 'Hidden' ? 'Hidden · system or language font' : auto + ' · ' + styleLabel(faces.length));
+    }
+  };
+  progress(0, fams.length);
+  await Promise.all([worker(), worker(), worker(), worker()]);
+  families = out;
+  store.families = families; store.importedAt = new Date().toISOString(); store.faceCount = list.length;
+  persist();
+  ui.metaMissing = false;
+  if (fromLibrary) openLibrary(); else enterSort();
+}
+
+/* ---------- import from dropped / picked files ---------- */
+let dropSeq = 0;
+async function importFiles(files) {
+  files = files.filter((f) => /\.(ttf|otf|ttc|woff2?)$/i.test(f.name));
+  if (!files.length) return;
+  show('v-load');
+  $('loadLabel').textContent = 'Reading ' + files.length + (files.length === 1 ? ' file' : ' files');
+  const byFam = new Map();
+  let done = 0;
+  for (const file of files) {
+    const info = await inspect(file);
+    const family = info.names[16] || info.names[1] || file.name.replace(/\.[^.]+$/, '').replace(/[-_](regular|bold|italic|light|medium|thin|black|semibold|extrabold|extralight|heavy|book).*$/i, '');
+    const style = info.names[17] || info.names[2] || 'Regular';
+    const alias = 'kept-file-' + (++dropSeq);
+    try { const face = new FontFace(alias, await file.arrayBuffer()); await face.load(); document.fonts.add(face); } catch (e) { /* preview falls back */ }
+    if (!byFam.has(family)) byFam.set(family, { family, faces: [], info, alias });
+    const entry = byFam.get(family);
+    entry.faces.push(style);
+    if (/^(regular|roman|book)$/i.test(style)) { entry.alias = alias; entry.info = info; }
+    done++;
+    progress(done, files.length, family, '"' + alias + '", serif', '');
+  }
+  const added = [...byFam.values()].map((e) => {
+    const q = '"' + e.alias + '"';
+    return Object.assign({ family: e.family, css: q + ', serif', styles: e.faces.length, auto: refine(classify(e.family, e.info), q, e.faces), source: 'file', xh: xHeightOf(q) }, propsOf(e.family, e.faces, e.info.axes));
+  });
+  families = [...families.filter((f) => !byFam.has(f.family)), ...added];
+  store.families = families.filter((f) => f.source === 'installed');   // dropped files last for this visit only
+  persist();
+  enterSort();
+}
+async function walkEntry(entry, out) {
+  if (entry.isFile) { await new Promise((res) => entry.file((f) => { out.push(f); res(); }, res)); return; }
+  if (entry.isDirectory) {
+    const reader = entry.createReader();
+    let batch;
+    do { batch = await new Promise((res) => reader.readEntries(res, () => res([]))); for (const e of batch) await walkEntry(e, out); } while (batch.length);
+  }
+}
+
+/* Fill in properties for libraries imported before filters existed. */
+async function upgradeMeta() {
+  let changed = false;
+  for (const f of families) if (f.xh === undefined && shelfOf(f) !== 'Hidden') { f.xh = xHeightOf(quote(f.family)); changed = true; }
+  if (families.some((f) => f.source === 'installed' && f.wmin == null)) {
+    try {
+      if (navigator.permissions) { const st = await navigator.permissions.query({ name: 'local-fonts' }); if (st.state !== 'granted') throw new Error('not granted'); }
+      const list = await window.queryLocalFonts();
+      const byFam = new Map();
+      for (const x of list) { if (!byFam.has(x.family)) byFam.set(x.family, []); byFam.get(x.family).push(x.style + ' ' + x.postscriptName); }
+      for (const f of families) { const st = byFam.get(f.family); if (st) Object.assign(f, propsOf(f.family, st, null)); }
+      changed = true; ui.metaMissing = false;
+    } catch (e) { ui.metaMissing = true; }
+  }
+  if (changed) { store.families = families.filter((f) => f.source === 'installed'); persist(); }
+  if (!$('v-lib').hidden) { syncFilterBounds(); renderFilterBtn(); renderResults(); }
+}
+
+/* ---------- menu (design-system dropdown) ---------- */
+let menuState = null;
+function openMenu(anchor, { title, items, value, onPick }) {
+  closePanel();
+  if (menuState && menuState.anchor === anchor) { closeMenu(); return; }
+  closeMenu();
+  const m = $('menu');
+  m.innerHTML = (title ? `<span class="mt mono">${esc(title)}</span>` : '') + items.map((it) =>
+    it.sep ? '<div class="msep" role="separator"></div>'
+      : `<button type="button" class="mi" role="menuitemradio" aria-checked="${it.value === value}" data-v="${esc(it.value)}"><span class="dot" aria-hidden="true"></span>${esc(it.label)}${it.note != null ? `<small>${esc(it.note)}</small>` : ''}</button>`).join('');
+  m.hidden = false;
+  const r = anchor.getBoundingClientRect(), mh = m.offsetHeight, mw = m.offsetWidth;
+  const below = r.bottom + 8 + mh <= innerHeight - 8;
+  m.style.top = scrollY + (below ? r.bottom + 8 : Math.max(8, r.top - 8 - mh)) + 'px';
+  m.style.left = scrollX + Math.min(Math.max(8, r.left - 20), innerWidth - mw - 8) + 'px';
+  anchor.setAttribute('aria-expanded', 'true');
+  const host = anchor.closest('.hv'); if (host) host.classList.add('menu-open');
+  menuState = { anchor, onPick, host };
+  (m.querySelector('[aria-checked="true"]') || m.querySelector('.mi')).focus();
+}
+function closeMenu(refocus) {
+  if (!menuState) return;
+  $('menu').hidden = true;
+  menuState.anchor.setAttribute('aria-expanded', 'false');
+  if (menuState.host) menuState.host.classList.remove('menu-open');
+  if (refocus) menuState.anchor.focus();
+  menuState = null;
+}
+$('menu').addEventListener('click', (e) => {
+  const b = e.target.closest('.mi'); if (!b || !menuState) return;
+  const pick = menuState.onPick; closeMenu(true); pick(b.dataset.v);
+});
+$('menu').addEventListener('keydown', (e) => {
+  const items = [...$('menu').querySelectorAll('.mi')];
+  const i = items.indexOf(document.activeElement);
+  if (e.key === 'ArrowDown') items[(i + 1) % items.length].focus();
+  else if (e.key === 'ArrowUp') items[(i - 1 + items.length) % items.length].focus();
+  else if (e.key === 'Home') items[0].focus();
+  else if (e.key === 'End') items[items.length - 1].focus();
+  else if (e.key === 'Escape') closeMenu(true);
+  else if (e.key === 'Tab') { closeMenu(true); }
+  else return;
+  e.preventDefault();
+});
+const shelfItems = () => [...SHELVES.map((s) => ({ value: s, label: s })), { sep: true }, { value: 'Hidden', label: 'Hidden' }];
+
+/* ---------- filter panel ---------- */
+const FILTERS = {
+  styles: { min: 1, max: 20, step: 1, show: (a, b) => a + ' – ' + (b >= 20 ? '20+' : b) },
+  weight: { min: 100, max: 900, step: 100, show: (a, b) => a + ' – ' + b },
+  width: { min: 1, max: 5, step: 1, show: (a, b) => { const n = ['Condensed', 'Semi-condensed', 'Normal', 'Semi-expanded', 'Expanded']; return a === b ? n[a - 1] : n[a - 1] + ' – ' + n[b - 1]; } },
+  xh: { min: 40, max: 80, step: 1, show: (a, b) => a + '% – ' + b + '% of cap' }
+};
+const fv = {};
+const resetFilters = () => { for (const k in FILTERS) fv[k] = [FILTERS[k].min, FILTERS[k].max]; };
+resetFilters();
+const isOn = (k) => fv[k][0] !== FILTERS[k].min || fv[k][1] !== FILTERS[k].max;
+const activeCount = () => Object.keys(FILTERS).filter(isOn).length;
+const widthStop = (c) => c <= 3 ? 1 : c === 4 ? 2 : c === 5 ? 3 : c === 6 ? 4 : 5;
+function passes(f) {
+  if (isOn('styles') && (f.styles < fv.styles[0] || (fv.styles[1] < 20 && f.styles > fv.styles[1]))) return false;
+  if (isOn('weight') && (f.wmin == null || f.wmax < fv.weight[0] || f.wmin > fv.weight[1])) return false;
+  if (isOn('width') && (f.wd0 == null || widthStop(f.wd1) < fv.width[0] || widthStop(f.wd0) > fv.width[1])) return false;
+  if (isOn('xh') && (f.xh == null || f.xh * 100 < fv.xh[0] || f.xh * 100 > fv.xh[1])) return false;
+  return true;
+}
+function syncFilterBounds() {
+  const xs = families.map((f) => f.xh).filter((x) => x != null).map((x) => Math.round(x * 100));
+  if (xs.length) {
+    const was = FILTERS.xh, full = !isOn('xh');
+    FILTERS.xh = Object.assign({}, was, { min: Math.min(...xs), max: Math.max(...xs) });
+    if (full) fv.xh = [FILTERS.xh.min, FILTERS.xh.max];
+  }
+  document.querySelectorAll('.dual').forEach((d) => {
+    const c = FILTERS[d.dataset.k];
+    for (const inp of d.querySelectorAll('input')) { inp.min = c.min; inp.max = c.max; inp.step = c.step; }
+    paintDual(d);
+  });
+}
+function paintDual(d) {
+  const k = d.dataset.k, c = FILTERS[k], [a, b] = fv[k];
+  d.querySelector('.lo').value = a; d.querySelector('.hi').value = b;
+  const span = c.max - c.min || 1;
+  d.style.setProperty('--a', (a - c.min) / span); d.style.setProperty('--b', (b - c.min) / span);
+  const out = { styles: 'fvStyles', weight: 'fvWeight', width: 'fvWidth', xh: 'fvXh' }[k];
+  $(out).textContent = isOn(k) ? c.show(a, b) : 'Any';
+}
+document.querySelectorAll('.dual').forEach((d) => {
+  const k = d.dataset.k;
+  d.addEventListener('input', (e) => {
+    let a = +d.querySelector('.lo').value, b = +d.querySelector('.hi').value;
+    if (a > b) { if (e.target.classList.contains('lo')) a = b; else b = a; }
+    fv[k] = [a, b]; paintDual(d); onFiltersChanged();
+  });
+});
+function renderFilterBtn() {
+  const n = activeCount();
+  $('filterBtn').innerHTML = 'Filters' + (n ? `<small>${n}</small>` : '') + CARET;
+  $('fReset').disabled = !n;
+  $('fNote').hidden = !ui.metaMissing;
+}
+let filterTimer;
+function onFiltersChanged() {
+  renderFilterBtn();
+  clearTimeout(filterTimer);
+  filterTimer = setTimeout(() => { renderResults(); $('fCount').textContent = 'Showing ' + fmt(filtered.length) + (filtered.length === 1 ? ' family' : ' families'); }, 80);
+}
+function openPanel() {
+  closeMenu();
+  const p = $('fpanel');
+  if (!p.hidden) { closePanel(true); return; }
+  syncFilterBounds(); renderFilterBtn();
+  $('fCount').textContent = 'Showing ' + fmt(filtered.length) + (filtered.length === 1 ? ' family' : ' families');
+  p.hidden = false;
+  const r = $('filterBtn').getBoundingClientRect();
+  p.style.top = scrollY + r.bottom + 8 + 'px';
+  p.style.left = scrollX + Math.min(Math.max(8, r.right - p.offsetWidth + 20), innerWidth - p.offsetWidth - 8) + 'px';
+  const overflow = r.bottom + 8 + p.offsetHeight + 16 - innerHeight;
+  if (overflow > 0) scrollBy({ top: overflow, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  $('filterBtn').setAttribute('aria-expanded', 'true');
+  p.querySelector('.dual input').focus();
+}
+function closePanel(refocus) {
+  const p = $('fpanel');
+  if (p.hidden) return;
+  p.hidden = true; $('filterBtn').setAttribute('aria-expanded', 'false');
+  if (refocus) $('filterBtn').focus();
+}
+$('filterBtn').onclick = openPanel;
+$('fDone').onclick = () => closePanel(true);
+$('fReset').onclick = () => { resetFilters(); syncFilterBounds(); onFiltersChanged(); };
+$('fRescan').onclick = () => { closePanel(); importInstalled(true); };
+$('fpanel').addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.preventDefault(); closePanel(true); } });
+
+/* close menus on outside click / scroll / resize */
+document.addEventListener('pointerdown', (e) => {
+  if (menuState && !$('menu').contains(e.target) && !menuState.anchor.contains(e.target)) closeMenu();
+  if (!$('fpanel').hidden && !$('fpanel').contains(e.target) && !$('filterBtn').contains(e.target)) closePanel();
+});
+addEventListener('resize', () => { closeMenu(); closePanel(); });
+
+/* ---------- library ---------- */
+let filtered = [];
+const SORTS = [{ value: 'name', label: 'Name' }, { value: 'styles', label: 'Most styles' }, { value: 'shelf', label: 'Shelf' }];
+function computeList() {
+  const q = ui.q.trim().toLowerCase();
+  const list = families.filter((f) => {
+    const s = shelfOf(f);
+    if (ui.page === 'saved') { if (!store.saved[f.family]) return false; }
+    else if (ui.shelf === 'All') { if (s === 'Hidden') return false; }
+    else if (s !== ui.shelf) return false;
+    if (q && !f.family.toLowerCase().includes(q)) return false;
+    return passes(f);
+  });
+  const byName = (a, b) => a.family.localeCompare(b.family);
+  if (ui.sort === 'styles') list.sort((a, b) => b.styles - a.styles || byName(a, b));
+  else if (ui.sort === 'shelf') list.sort((a, b) => ALL_SHELVES.indexOf(shelfOf(a)) - ALL_SHELVES.indexOf(shelfOf(b)) || byName(a, b));
+  else list.sort(byName);
+  return list;
+}
+function renderShelves() {
+  const counts = Object.fromEntries(ALL_SHELVES.map((s) => [s, 0]));
+  for (const f of families) counts[shelfOf(f)]++;
+  const btn = (key, label, n, extra = '') =>
+    `<button type="button" class="tb ${extra}" data-shelf="${esc(key)}" aria-pressed="${ui.page === 'library' && ui.shelf === key}">${esc(label)}<small>${fmt(n)}</small></button>`;
+  let html = btn('All', 'All', families.length - counts.Hidden);
+  for (const s of SHELVES) if (s !== 'Unsorted' || counts.Unsorted) html += btn(s, s, counts[s]);
+  html += btn('Hidden', 'Hidden', counts.Hidden, 'sep');
+  $('shelves').innerHTML = html;
+  $('libStats').textContent = (store.faceCount ? fmt(store.faceCount) + ' fonts · ' : '') + fmt(families.length) + ' families';
+  renderResume();
+}
+function itemHTML(f, i) {
+  const s = shelfOf(f), saved = !!store.saved[f.family];
+  const text = esc(ui.preview.trim() || 'Sphinx of black quartz, judge my vow');
+  const bm = `<button type="button" class="bm" data-act="save" data-i="${i}" aria-pressed="${saved}" aria-label="${saved ? 'Remove bookmark from ' : 'Bookmark '}${esc(f.family)}">${BOOKMARK.replace('FILL', saved ? 'currentColor' : 'none')}</button>`;
+  const move = `<button type="button" class="dd quiet" data-act="move" data-i="${i}" aria-haspopup="menu" aria-expanded="false" aria-label="Shelf for ${esc(f.family)}: ${esc(s)}. Change shelf">${esc(s)}${CARET}</button>`;
+  const spec = (size) => `<p class="spec" data-font="${i}" style="font-size:${size}px">${text}</p>`;
+  if (ui.view === 'grid') {
+    return `<article class="cell hv hv-c">
+      <div class="head" style="flex-wrap:nowrap"><div class="name"><b>${esc(f.family)}</b><span class="tag">${esc(s)} · ${styleLabel(f.styles)}</span></div>${bm}</div>
+      ${spec(ui.size)}
+      <div class="foot reveal">${move}<button type="button" class="bt" data-act="play" data-i="${i}" style="height:32px;font-size:13px">Try in Playground</button></div>
+    </article>`;
+  }
+  const big = ui.view === 'display';
+  return `<li class="row hv hv-r${big ? ' big' : ''}">
+    <div class="head"><div class="name"><b>${esc(f.family)}</b><span>${esc(s)} · ${styleLabel(f.styles)}</span></div>
+      <div style="display:flex;align-items:center;gap:20px"><span class="reveal" style="display:flex;align-items:center;gap:20px"><button type="button" class="bt" data-act="play" data-i="${i}" style="height:32px;font-size:13px">Try in Playground</button>${move}</span>${bm}</div></div>
+    ${spec(Math.round(ui.size * (big ? 2.2 : 1.5)))}
+  </li>`;
+}
+const PAGE = 40;
+function renderMore() {
+  const box = $('results').firstElementChild;
+  if (!box || !box.matches('.grid,.rows') || ui.shown >= filtered.length) return;
+  const end = Math.min(filtered.length, ui.shown + PAGE);
+  const t = document.createElement('template');
+  t.innerHTML = filtered.slice(ui.shown, end).map((f, k) => itemHTML(f, ui.shown + k)).join('');
+  t.content.querySelectorAll('[data-font]').forEach((el) => { el.style.fontFamily = filtered[+el.dataset.font].css; });
+  box.appendChild(t.content);
+  ui.shown = end;
+}
+function renderResults() {
+  const pairsView = ui.page === 'saved' && ui.savedTab === 'pairs';
+  $('toolbar').hidden = pairsView;
+  if (pairsView) { renderPairs(); return; }
+  filtered = computeList();
+  ui.shown = 0;
+  $('libTitle').textContent = ui.page === 'saved' ? 'Saved' : ui.shelf === 'All' ? 'All fonts' : ui.shelf;
+  if (!filtered.length) {
+    const msg = activeCount() ? ['Nothing matches these filters.', 'Widen a range or reset the filters to see more.']
+      : ui.q ? [`Nothing called “${esc(ui.q)}”.`, 'Try part of the family name, or clear the search.']
+      : ui.page === 'saved' ? ['No saved fonts yet.', 'Tap the bookmark on any font in your library and it lands here.']
+      : ui.shelf === 'Hidden' ? ['Nothing hidden.', 'System and language fonts, and anything you hide while sorting, appear here.']
+      : [`No ${esc(ui.shelf.toLowerCase())} fonts.`, 'Move a font here from its card, or rescan if you installed new ones.'];
+    const action = activeCount() ? '<button type="button" class="bt" data-act="clearf" style="color:var(--ink)">Reset filters</button>'
+      : ui.page === 'saved' ? '<button type="button" class="bt" data-act="tolib" style="color:var(--ink)">Browse library</button>' : '';
+    $('results').innerHTML = `<div class="empty"><h2>${msg[0]}</h2><p>${msg[1]}</p>${action}</div>`;
+    return;
+  }
+  $('results').innerHTML = ui.view === 'grid' ? '<div class="grid"></div>' : '<ul class="rows"></ul>';
+  renderMore();
+}
+function render() {
+  renderShelves();
+  setNav(ui.page);
+  document.querySelectorAll('#views .tb').forEach((b) => b.setAttribute('aria-pressed', b.dataset.view === ui.view));
+  $('shelves').style.display = ui.page === 'saved' ? 'none' : '';
+  renderSavedTabs();
+  $('sortBtn').innerHTML = esc(SORTS.find((s) => s.value === ui.sort).label) + CARET;
+  renderFilterBtn();
+  renderResults();
+}
+function openLibrary() { show('v-lib'); syncFilterBounds(); render(); window.scrollTo(0, 0); }
+
+/* ---------- sorting progress ---------- */
+function shelfStats() {
+  const st = Object.fromEntries(SHELVES.map((s) => [s, { total: 0, done: 0 }]));
+  for (const f of families) {
+    if (store.reviewed[f.family]) {
+      const s = store.reviewShelf[f.family] || (shelfOf(f) === 'Hidden' ? f.auto : shelfOf(f));
+      if (st[s]) { st[s].total++; st[s].done++; }
+    } else {
+      const s = shelfOf(f);
+      if (st[s]) st[s].total++;
+    }
+  }
+  return st;
+}
+function overall() {
+  const st = shelfStats();
+  let total = 0, done = 0;
+  for (const s of SHELVES) { total += st[s].total; done += st[s].done; }
+  return { total, done, left: total - done, st };
+}
+const nextShelf = (st, after) => {
+  const order = after ? [...SHELVES.slice(SHELVES.indexOf(after) + 1), ...SHELVES.slice(0, SHELVES.indexOf(after))] : SHELVES;
+  return order.find((s) => st[s].total - st[s].done > 0) || null;
+};
+function renderResume() {
+  const o = overall();
+  const box = $('resume');
+  if (!o.left) { box.hidden = true; return; }
+  box.hidden = false;
+  const cur = store.sortShelf && o.st[store.sortShelf] && o.st[store.sortShelf].total - o.st[store.sortShelf].done > 0 ? store.sortShelf : null;
+  if (cur) {
+    const s = o.st[cur];
+    $('resumeTitle').innerHTML = `Pick up where you left off <span>· ${esc(cur)}, ${fmt(s.done)} of ${fmt(s.total)} sorted</span>`;
+    $('resumeBtn').textContent = 'Continue sorting';
+  } else if (o.done) {
+    $('resumeTitle').innerHTML = `Pick up where you left off <span>· ${fmt(o.done)} of ${fmt(o.total)} families sorted</span>`;
+    $('resumeBtn').textContent = 'Continue sorting';
+  } else {
+    $('resumeTitle').innerHTML = `Your shelves are ready to sort <span>· ${fmt(o.total)} families</span>`;
+    $('resumeBtn').textContent = 'Start sorting';
+  }
+}
+
+/* ---------- sorting screen ---------- */
+const sorter = { shelf: null, queue: [], i: 0, history: [], mode: 'pick' };
+
+function enterSort(opts = {}) {
+  show('v-sort'); window.scrollTo(0, 0);
+  const o = overall();
+  sorter.history = [];
+  if (opts.shelf) return startShelf(opts.shelf);
+  if (!o.left) sorter.mode = 'all-done';
+  else if (opts.welcome && o.done) sorter.mode = 'welcome';
+  else sorter.mode = 'pick';
+  renderSort();
+}
+function startShelf(s) {
+  sorter.shelf = s;
+  sorter.queue = families.filter((f) => shelfOf(f) === s && !store.reviewed[f.family]).sort((a, b) => a.family.localeCompare(b.family));
+  sorter.i = 0; sorter.history = [];
+  sorter.mode = sorter.queue.length ? 'review' : 'shelf-done';
+  store.sortShelf = s; persist();
+  renderSort();
+  if (innerWidth <= 720) document.querySelector('.tri').scrollIntoView({ block: 'start' });
+}
+function renderSort() {
+  const o = overall();
+  const title = store.faceCount && families.some((f) => f.source === 'installed') ? fmt(store.faceCount) + ' fonts' : fmt(families.length) + ' families';
+  $('sumTitle').textContent = title + ', already on shelves.';
+  const hidden = families.filter((f) => shelfOf(f) === 'Hidden' && !store.reviewed[f.family]).length;
+  let html = '';
+  for (const s of SHELVES) {
+    const t = o.st[s];
+    if (!t.total) continue;
+    const complete = t.done >= t.total;
+    const cur = sorter.mode === 'review' && sorter.shelf === s;
+    html += `<button type="button" role="listitem" class="shelfrow${complete ? ' done' : ''}" data-shelf="${s}" aria-current="${cur}" style="--p:${t.done / t.total}" aria-label="${s}: ${t.done} of ${t.total} checked${complete ? ', done' : ''}">
+      <span class="nm">${s}</span><span class="ct">${complete ? CHECK + ' Done' : fmt(t.done) + ' / ' + fmt(t.total)}</span><i aria-hidden="true"></i></button>`;
+  }
+  html += `<div class="shelfrow muted" role="listitem"><span class="nm">System and language, hidden</span><span class="ct">${fmt(hidden)}</span></div>`;
+  $('shelfList').innerHTML = html;
+
+  const live = sorter.mode === 'review';
+  $('triLive').hidden = !live; $('triState').hidden = live;
+  if (live) {
+    const q = sorter.queue, i = sorter.i, f = q[i];
+    $('triCount').textContent = sorter.shelf + ' · ' + fmt(i + 1) + ' / ' + fmt(q.length);
+    $('triBar').style.width = (i / q.length) * 100 + '%';
+    $('tUndo').style.visibility = sorter.history.length ? 'visible' : 'hidden';
+    $('triLabel').textContent = styleLabel(f.styles);
+    $('triShelf').innerHTML = esc(shelfOf(f)) + CARET;
+    $('triShelf').setAttribute('aria-label', 'Shelf: ' + shelfOf(f) + '. Change shelf');
+    $('triName').textContent = f.family;
+    $('triName').style.fontFamily = f.css; $('triPan').style.fontFamily = f.css;
+    return;
+  }
+  $('triCount').textContent = fmt(o.done) + ' / ' + fmt(o.total) + ' checked';
+  $('triBar').style.width = (o.total ? (o.done / o.total) * 100 : 100) + '%';
+  const next = nextShelf(o.st, sorter.mode === 'shelf-done' ? sorter.shelf : null);
+  const goLib = '<button type="button" class="bs" data-golib>Go to library</button>';
+  const cont = (s) => `<button type="button" class="bp" data-start="${s}">${o.done ? 'Continue with ' : 'Start with '}${s}</button>`;
+  const left = (s) => fmt(o.st[s].total - o.st[s].done);
+  let body = '';
+  if (sorter.mode === 'pick') {
+    body = `<h2>Pick a shelf to start.</h2>
+      <p>Go one shelf at a time, in any order. Everything you keep, hide or move is <b>saved as you go</b>, so you can stop whenever you like and continue right where you left off.</p>
+      <div class="acts">${next ? cont(next) : ''}${goLib}</div>`;
+  } else if (sorter.mode === 'welcome') {
+    const resumeAt = store.sortShelf && o.st[store.sortShelf] && o.st[store.sortShelf].total > o.st[store.sortShelf].done ? store.sortShelf : next;
+    body = `<h2>Welcome back.</h2>
+      <p>You’ve checked <b>${fmt(o.done)} of ${fmt(o.total)}</b> families, and all of it is saved. ${resumeAt ? `Pick up in ${resumeAt}, with ${left(resumeAt)} to go, or choose another shelf.` : ''}</p>
+      <div class="acts">${resumeAt ? `<button type="button" class="bp" data-start="${resumeAt}">Continue with ${resumeAt}</button>` : ''}${goLib}</div>`;
+  } else if (sorter.mode === 'shelf-done') {
+    const t = o.st[sorter.shelf];
+    body = `<h2>${esc(sorter.shelf)} is done.</h2>
+      <p>${fmt(t.total)} ${t.total === 1 ? 'family' : 'families'} checked and saved.${next ? ` Next up: ${next}, with ${left(next)} to go. Or take a break; this will be waiting for you.` : ''}</p>
+      <div class="acts">${next ? `<button type="button" class="bp" data-start="${next}">Continue with ${next}</button>` : ''}${goLib}</div>`;
+  } else {
+    const t = tallies();
+    body = `<h2>Your shelf is ready.</h2>
+      <p>Every shelf is checked. Kept ${fmt(t.kept)}, bookmarked ${fmt(t.saved)}, hid ${fmt(t.hidden)}. New fonts you install will show up here to sort.</p>
+      <div class="acts"><button type="button" class="bp" data-golib>Open library</button></div>`;
+  }
+  $('triState').innerHTML = body;
+}
+function tallies() {
+  let kept = 0, hidden = 0, saved = 0;
+  for (const v of Object.values(store.reviewed)) { if (v === 'hide') hidden++; else kept++; if (v === 'fav') saved++; }
+  return { kept, hidden, saved };
+}
+function swapCard(fn) {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { fn(); return; }
+  $('triCard').classList.add('swap');
+  setTimeout(() => { fn(); $('triCard').classList.remove('swap'); }, 150);
+}
+function advance() {
+  sorter.i++;
+  if (sorter.i >= sorter.queue.length) { sorter.mode = 'shelf-done'; renderSort(); return; }
+  swapCard(renderSort);
+}
+function act(kind) {
+  if (sorter.mode !== 'review') return;
+  const f = sorter.queue[sorter.i];
+  sorter.history.push({ f, move: store.moves[f.family], saved: store.saved[f.family], i: sorter.i });
+  store.reviewShelf[f.family] = shelfOf(f) === 'Hidden' ? sorter.shelf : shelfOf(f);
+  if (kind === 'hide') store.moves[f.family] = 'Hidden';
+  if (kind === 'fav') store.saved[f.family] = new Date().toISOString();
+  store.reviewed[f.family] = kind;
+  persist();
+  advance();
+}
+function undoAct() {
+  const h = sorter.history.pop();
+  if (!h) return;
+  if (h.move === undefined) delete store.moves[h.f.family]; else store.moves[h.f.family] = h.move;
+  if (h.saved === undefined) delete store.saved[h.f.family]; else store.saved[h.f.family] = h.saved;
+  delete store.reviewed[h.f.family]; delete store.reviewShelf[h.f.family];
+  persist();
+  sorter.i = h.i; sorter.mode = 'review';
+  swapCard(renderSort);
+}
+$('tHide').onclick = () => act('hide');
+$('tKeep').onclick = () => act('keep');
+$('tFav').onclick = () => act('fav');
+$('tUndo').onclick = undoAct;
+$('triShelf').onclick = () => {
+  const f = sorter.queue[sorter.i];
+  openMenu($('triShelf'), { title: 'Move to shelf', items: shelfItems(), value: shelfOf(f), onPick: (v) => {
+    if (v === f.auto) delete store.moves[f.family]; else store.moves[f.family] = v;
+    persist(); renderSort();
+  } });
+};
+$('v-sort').addEventListener('click', (e) => {
+  const row = e.target.closest('.shelfrow[data-shelf]');
+  if (row) { startShelf(row.dataset.shelf); return; }
+  const st = e.target.closest('[data-start]');
+  if (st) { startShelf(st.dataset.start); return; }
+  if (e.target.closest('[data-golib]')) openLibrary();
+});
+addEventListener('keydown', (e) => {
+  if ($('v-sort').hidden || sorter.mode !== 'review' || e.metaKey || e.ctrlKey || e.altKey || menuState) return;
+  if (e.target.closest('input, textarea, .menu')) return;
+  const k = e.key.toLowerCase();
+  if (k === 'h') act('hide'); else if (k === 'k') act('keep'); else if (k === 'b') act('fav'); else if (k === 'z') undoAct(); else return;
+  e.preventDefault();
+});
+
+/* ---------- nav ---------- */
+function setNav(page) {
+  $('searchbox').hidden = !(!$('v-lib').hidden && page === 'library');
+  document.querySelectorAll('.hdr .nl[data-page]').forEach((b) => { if (b.dataset.page === page) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
+}
+
+/* ---------- saved: fonts + pairs ---------- */
+store.pairs = store.pairs || [];
+ui.savedTab = 'fonts';
+function renderSavedTabs() {
+  const box = $('savedTabs');
+  box.hidden = ui.page !== 'saved';
+  if (box.hidden) return;
+  const nf = families.filter((f) => store.saved[f.family]).length;
+  box.innerHTML = [['fonts', 'Fonts', nf], ['pairs', 'Pairs', store.pairs.length]].map(([k, l, n]) =>
+    `<button type="button" class="tb" data-tab="${k}" aria-pressed="${ui.savedTab === k}">${l}<small>${fmt(n)}</small></button>`).join('');
+}
+$('savedTabs').onclick = (e) => { const b = e.target.closest('[data-tab]'); if (!b) return; ui.savedTab = b.dataset.tab; renderSavedTabs(); renderResults(); };
+const famBy = (name) => families.find((f) => f.family === name);
+const cssOf = (name) => { const f = famBy(name); return f ? f.css : quote(name) + ', serif'; };
+function renderPairs() {
+  $('libTitle').textContent = 'Saved';
+  const list = store.pairs;
+  if (!list.length) {
+    $('results').innerHTML = `<div class="empty"><h2>No saved pairs yet.</h2><p>Put fonts together in the Playground and press Save pair. They’ll wait for you here.</p><button type="button" class="bt" data-act="toplay" style="color:var(--ink)">Open Playground</button></div>`;
+    return;
+  }
+  $('results').innerHTML = '<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(min(100%,400px),1fr))">' + list.map((pr) => `
+    <article class="cell pcell hv hv-c">
+      <div class="head" style="flex-wrap:nowrap"><div class="name"><b>${esc(pr.heading)}</b><span>+ ${esc(pr.body)}</span></div>
+        <button type="button" class="bm" data-act="unpair" data-k="${esc(pr.k)}" aria-pressed="true" aria-label="Remove pair ${esc(pr.heading)} and ${esc(pr.body)}">${BOOKMARK.replace('FILL', 'currentColor')}</button></div>
+      <p class="ph" data-css="h" data-k="${esc(pr.k)}" style="font-size:44px">${esc(pr.head || 'The quiet return of the serif')}</p>
+      <p class="pb" data-css="b" data-k="${esc(pr.k)}">${esc((pr.text || PG_TEXT.body).slice(0, 140))}…</p>
+      <div class="foot reveal"><span data-css="c" data-k="${esc(pr.k)}" style="font-size:12px;letter-spacing:.06em">${esc(pr.caption)}</span><button type="button" class="bt" data-act="openpair" data-k="${esc(pr.k)}" style="height:32px;font-size:13px">Open in Playground</button></div>
+    </article>`).join('') + '</div>';
+  $('results').querySelectorAll('[data-css]').forEach((el) => {
+    const pr = list.find((x) => x.k === el.dataset.k);
+    el.style.fontFamily = cssOf({ h: pr.heading, b: pr.body, c: pr.caption }[el.dataset.css]);
+  });
+}
+
+/* ---------- playground ---------- */
+const PG_TEXT = { issue: 'Issue 04 — Autumn', head: 'The quiet return of the serif', body: 'After a decade of geometric sans everywhere, editors are reaching for warmth again: softer curves, visible ink traps, and type that sounds like a person instead of a product.', foot: 'Set in Kept Playground · Page 12' };
+const SWATCHES = [['Paper', '#F4F1EA'], ['White', '#FFFFFF'], ['Sand', '#E9E2D0'], ['Sage', '#C9D3C0'], ['Blush', '#F2C6B4'], ['Navy', '#1E2A44'], ['Graphite', '#2B2B2B'], ['Ink', '#111111']];
+const SIZES = { S: 40, M: 56, L: 76 };
+const RATIOS = [['4:5', ''], ['1:1', 'r11'], ['16:9', 'r169']];
+const ROLES = [['heading', 'Heading'], ['body', 'Body'], ['caption', 'Caption']];
+const pg = Object.assign({ heading: null, body: null, caption: null, active: 'heading', bg: '#F4F1EA', size: 'M', align: 'left', ratio: '4:5', text: Object.assign({}, PG_TEXT), src: 'saved', q: '', sugIdx: 0, reason: '' }, store.pg || {});
+pg.text = Object.assign({}, PG_TEXT, pg.text || {});
+const savePg = () => { const { q, ...keep } = pg; store.pg = keep; persist(); };
+const usable = () => families.filter((f) => shelfOf(f) !== 'Hidden');
+
+function bodyCandidates(head) {
+  const pref = { Serif: ['Sans-serif', 'Serif'], 'Sans-serif': ['Serif', 'Sans-serif'] }[shelfOf(head)] || ['Sans-serif', 'Serif'];
+  const xs = usable().map((f) => f.xh).filter((x) => x != null).sort((a, b) => a - b);
+  const medXh = xs.length ? xs[Math.floor(xs.length / 2)] : 0.7;
+  return usable().filter((f) => f.family !== head.family && pref.includes(shelfOf(f))).map((f) => {
+    let s = pref.indexOf(shelfOf(f)) === 0 ? 8 : 0;
+    if (store.saved[f.family]) s += 3;
+    if (store.reviewed[f.family] && store.reviewed[f.family] !== 'hide') s += 1;
+    s += f.styles >= 4 ? 2 : f.styles >= 2 ? 1 : 0;
+    if (f.wd0 == null || (f.wd0 <= 5 && f.wd1 >= 5)) s += 1;
+    if (f.xh != null && f.xh >= medXh) s += 1;
+    if (f.xh != null && head.xh != null && Math.abs(f.xh - head.xh) <= 0.04) s += 1;
+    return { f, s };
+  }).sort((a, b) => b.s - a.s || a.f.family.localeCompare(b.f.family)).map((x) => x.f);
+}
+function captionFor(body) {
+  const monos = usable().filter((f) => shelfOf(f) === 'Mono').sort((a, b) => (!!store.saved[b.family] - !!store.saved[a.family]) || b.styles - a.styles || a.family.localeCompare(b.family));
+  return monos[0] || body;
+}
+function suggestFor(fresh) {
+  const head = famBy(pg.heading);
+  if (!head) return;
+  const list = bodyCandidates(head);
+  if (!list.length) { pg.reason = 'Your library needs at least one more serif or sans-serif to suggest a body font.'; return; }
+  pg.sugIdx = fresh ? 0 : (pg.sugIdx + 1) % list.length;
+  const body = list[pg.sugIdx], cap = captionFor(body);
+  pg.body = body.family; pg.caption = cap.family;
+  const hs = shelfOf(head).toLowerCase(), bs = shelfOf(body).toLowerCase();
+  const parts = [`${body.family} for the body: a ${bs} with ${styleLabel(body.styles)}${body.xh != null && body.xh >= 0.7 ? ' and a generous x-height, so it stays readable small' : ''}.`];
+  if (hs !== bs) parts.push(`A ${hs} heading over a ${bs} body gives clear contrast without the two competing.`);
+  else parts.push(`Two ${bs}s with different personalities; keep the heading large so the difference reads.`);
+  if (body.xh != null && head.xh != null && Math.abs(body.xh - head.xh) <= 0.04) parts.push('Their x-heights are close, so they read as one voice.');
+  parts.push(cap.family !== body.family ? `${cap.family} handles captions and small print.` : `Captions reuse ${body.family} to keep things quiet.`);
+  if (store.saved[body.family]) parts.push('It’s one of your bookmarks.');
+  pg.reason = parts.join(' ');
+}
+function ensurePg() {
+  const u = usable();
+  if (!u.length) return false;
+  const ok = (n) => n && famBy(n) && shelfOf(famBy(n)) !== 'Hidden';
+  if (!ok(pg.heading)) {
+    const saved = u.filter((f) => store.saved[f.family]);
+    const pick = saved.find((f) => ['Serif', 'Display'].includes(shelfOf(f))) || u.find((f) => shelfOf(f) === 'Serif') || saved[0] || u[0];
+    pg.heading = pick.family;
+  }
+  if (!ok(pg.body) || !ok(pg.caption)) suggestFor(true);
+  return true;
+}
+function openPlayground() {
+  if (!families.length) { show('v-onboard'); return; }
+  show('v-play'); window.scrollTo(0, 0);
+  if (!ensurePg()) return;
+  if (!store.saved || !Object.keys(store.saved).length) pg.src = 'all';
+  savePg();
+  renderPlayground();
+}
+const lum = (hex) => { const h = hex.replace('#', ''); const r = parseInt(h.slice(0, 2), 16), g = parseInt(h.slice(2, 4), 16), b = parseInt(h.slice(4, 6), 16); return (0.299 * r + 0.587 * g + 0.114 * b) / 255; };
+const pairKey = () => [pg.heading, pg.body, pg.caption].join('|');
+function renderPlayground() {
+  // roles
+  $('pgRoles').innerHTML = ROLES.map(([k, l]) => `<button type="button" class="role" data-role="${k}" aria-pressed="${pg.active === k}"><span class="mono">${l}</span><span class="fn" data-fn="${k}">${esc(pg[k] || '')}</span></button>`).join('');
+  $('pgRoles').querySelectorAll('[data-fn]').forEach((el) => { el.style.fontFamily = cssOf(pg[el.dataset.fn]); });
+  $('pgReason').hidden = !pg.reason; $('pgReason').textContent = pg.reason;
+  $('pgSuggestLabel').textContent = pg.reason ? 'Try another body' : 'Suggest body + caption';
+  renderPgList();
+  // frame
+  const fr = $('frame'), dark = lum(pg.bg) <= 0.55;
+  fr.style.background = pg.bg; fr.style.color = dark ? '#F5F4F0' : '#141413';
+  fr.style.textAlign = pg.align;
+  fr.className = 'frame ' + (RATIOS.find((r) => r[0] === pg.ratio) || RATIOS[0])[1];
+  fr.querySelectorAll('[data-t]').forEach((el) => {
+    if (document.activeElement !== el) el.textContent = pg.text[el.dataset.t];
+    el.style.fontFamily = cssOf(pg[el.dataset.role]);
+  });
+  fitFrame();
+  $('pgRatioLabel').textContent = 'Frame · ' + pg.ratio;
+  $('pgBgLabel').textContent = pg.bg.toUpperCase();
+  // settings
+  $('pgSwatches').innerHTML = SWATCHES.map(([n, h]) => `<button type="button" data-bg="${h}" aria-pressed="${h.toLowerCase() === pg.bg.toLowerCase()}" aria-label="${n} background" title="${n}" style="background:${h}"></button>`).join('');
+  if (document.activeElement !== $('pgHex')) $('pgHex').value = pg.bg.toUpperCase();
+  $('pgSizes').innerHTML = Object.keys(SIZES).map((z) => `<button type="button" class="tb" data-size="${z}" aria-pressed="${pg.size === z}">${z} · ${SIZES[z]}</button>`).join('');
+  $('pgAligns').innerHTML = [['left', 'Left'], ['center', 'Center']].map(([v, l]) => `<button type="button" class="tb" data-align="${v}" aria-pressed="${pg.align === v}">${l}</button>`).join('');
+  $('pgRatios').innerHTML = RATIOS.map(([r]) => `<button type="button" class="tb" data-ratio="${r}" aria-pressed="${pg.ratio === r}">${r}</button>`).join('');
+  $('pgPair').innerHTML = `<span class="mono lbl">This pair</span>` + ROLES.map(([k]) => `<span data-pp="${k}" style="font-size:${{ heading: 22, body: 15, caption: 12 }[k]}px">${esc(pg[k])}</span>`).join('');
+  $('pgPair').querySelectorAll('[data-pp]').forEach((el) => { el.style.fontFamily = cssOf(pg[el.dataset.pp]); });
+  const saved = store.pairs.some((x) => x.k === pairKey());
+  $('pgSave').setAttribute('aria-pressed', saved);
+  $('pgSave').textContent = saved ? 'Saved to pairs' : 'Save pair';
+}
+function fitFrame() {
+  const fr = $('frame'), base = pg.ratio === '16:9' ? 760 : 560;
+  const k = Math.min(1, (fr.clientWidth || base) / base);
+  const px = (n, min) => Math.max(min, Math.round(n * k)) + 'px';
+  fr.style.padding = pg.ratio === '16:9' ? px(36, 18) + ' ' + px(44, 20) : px(48, 22) + ' ' + px(44, 20);
+  fr.style.gap = px(24, 12);
+  fr.querySelector('.f-head').style.fontSize = px(SIZES[pg.size] * (pg.ratio === '16:9' ? 0.8 : 1), 20);
+  fr.querySelector('.f-body').style.fontSize = px(16, 11);
+  fr.querySelector('.f-issue').style.fontSize = px(12, 9);
+  fr.querySelector('.f-foot').style.fontSize = px(11, 8);
+  fr.querySelector('.f-main').style.gap = px(20, 10);
+}
+addEventListener('resize', () => { if (!$('v-play').hidden) fitFrame(); });
+function renderPgList() {
+  const roleName = ROLES.find((r) => r[0] === pg.active)[1].toLowerCase();
+  $('pgListTitle').textContent = 'Font for ' + roleName;
+  const savedN = usable().filter((f) => store.saved[f.family]).length;
+  if (!savedN) pg.src = 'all';
+  $('pgSrc').innerHTML = [['saved', 'Saved', savedN], ['all', 'All', usable().length]].map(([k, l, n]) =>
+    `<button type="button" class="tb" data-src="${k}" aria-pressed="${pg.src === k}"${k === 'saved' && !n ? ' disabled style="opacity:.4;cursor:default"' : ''}>${l}<small>${fmt(n)}</small></button>`).join('');
+  const q = pg.q.trim().toLowerCase();
+  const list = usable().filter((f) => (pg.src === 'all' || store.saved[f.family]) && (!q || f.family.toLowerCase().includes(q)))
+    .sort((a, b) => a.family.localeCompare(b.family));
+  if (!list.length) { $('pgList').innerHTML = `<p class="pg-empty">${q ? 'No font matches “' + esc(pg.q) + '”.' : 'Nothing here yet.'}</p>`; return; }
+  $('pgList').innerHTML = list.map((f, i) => `<button type="button" class="pf" role="option" data-fam="${esc(f.family)}" aria-selected="${pg[pg.active] === f.family}"><span class="dot" aria-hidden="true"></span><span class="nm" data-li="${i}">${esc(f.family)}</span><small>${esc(shelfOf(f))}</small></button>`).join('');
+  $('pgList').querySelectorAll('[data-li]').forEach((el) => { el.style.fontFamily = list[+el.dataset.li].css; });
+}
+$('pgRoles').onclick = (e) => { const b = e.target.closest('[data-role]'); if (!b) return; pg.active = b.dataset.role; savePg(); renderPlayground(); };
+$('pgSrc').onclick = (e) => { const b = e.target.closest('[data-src]'); if (!b || b.disabled) return; pg.src = b.dataset.src; savePg(); renderPgList(); };
+$('pgSearch').oninput = (e) => { pg.q = e.target.value; renderPgList(); };
+$('pgList').onclick = (e) => {
+  const b = e.target.closest('[data-fam]'); if (!b) return;
+  pg[pg.active] = b.dataset.fam;
+  if (pg.active === 'heading') { pg.reason = ''; pg.sugIdx = 0; }
+  savePg(); renderPlayground();
+};
+$('pgSuggest').onclick = () => { suggestFor(!pg.reason); savePg(); renderPlayground(); };
+$('frame').addEventListener('focusin', (e) => { const el = e.target.closest('[data-role]'); if (el && pg.active !== el.dataset.role) { pg.active = el.dataset.role; savePg(); renderPlayground(); } });
+$('frame').addEventListener('input', (e) => { const el = e.target.closest('[data-t]'); if (!el) return; pg.text[el.dataset.t] = el.textContent; savePg(); });
+$('frame').addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.target.matches('.f-body')) { e.preventDefault(); e.target.blur(); } });
+$('pgSwatches').onclick = (e) => { const b = e.target.closest('[data-bg]'); if (!b) return; pg.bg = b.dataset.bg; savePg(); renderPlayground(); };
+$('pgHex').oninput = (e) => { let v = e.target.value.trim(); if (!v.startsWith('#')) v = '#' + v; if (/^#[0-9a-f]{6}$/i.test(v)) { pg.bg = v; savePg(); renderPlayground(); } };
+$('pgSizes').onclick = (e) => { const b = e.target.closest('[data-size]'); if (!b) return; pg.size = b.dataset.size; savePg(); renderPlayground(); };
+$('pgAligns').onclick = (e) => { const b = e.target.closest('[data-align]'); if (!b) return; pg.align = b.dataset.align; savePg(); renderPlayground(); };
+$('pgRatios').onclick = (e) => { const b = e.target.closest('[data-ratio]'); if (!b) return; pg.ratio = b.dataset.ratio; savePg(); renderPlayground(); };
+$('pgSave').onclick = () => {
+  const k = pairKey(), idx = store.pairs.findIndex((x) => x.k === k);
+  if (idx >= 0) {
+    const [removed] = store.pairs.splice(idx, 1); persist(); renderPlayground();
+    toast('Removed from pairs', () => { store.pairs.splice(idx, 0, removed); persist(); renderPlayground(); });
+  } else {
+    store.pairs.unshift({ k, heading: pg.heading, body: pg.body, caption: pg.caption, bg: pg.bg, head: pg.text.head, text: pg.text.body, at: new Date().toISOString() });
+    persist(); renderPlayground();
+    toast('Saved to pairs. Find it under Saved.', null);
+  }
+};
+
+/* Export: redraw the frame on a canvas, line by line, using the same fonts. */
+function wrapLines(ctx, text, width) {
+  const out = [];
+  for (const para of text.split('\n')) {
+    let line = '';
+    for (const word of para.split(/\s+/)) {
+      const test = line ? line + ' ' + word : word;
+      if (ctx.measureText(test).width > width && line) { out.push(line); line = word; } else line = test;
+    }
+    out.push(line);
+  }
+  return out;
+}
+async function exportPng() {
+  const fr = $('frame'), box = fr.getBoundingClientRect(), scale = 2;
+  const cv = document.createElement('canvas');
+  cv.width = Math.round(box.width * scale); cv.height = Math.round(box.height * scale);
+  const ctx = cv.getContext('2d');
+  ctx.scale(scale, scale);
+  ctx.fillStyle = pg.bg; ctx.fillRect(0, 0, box.width, box.height);
+  const fg = getComputedStyle(fr).color;
+  for (const el of fr.querySelectorAll('[data-t]')) {
+    const cs = getComputedStyle(el), r = el.getBoundingClientRect();
+    const size = parseFloat(cs.fontSize), lh = cs.lineHeight === 'normal' ? size * 1.2 : parseFloat(cs.lineHeight);
+    ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${size}px ${cs.fontFamily}`;
+    if ('letterSpacing' in ctx) ctx.letterSpacing = cs.letterSpacing === 'normal' ? '0px' : cs.letterSpacing;
+    ctx.fillStyle = fg; ctx.globalAlpha = parseFloat(cs.opacity) || 1;
+    ctx.textAlign = pg.align === 'center' ? 'center' : 'left';
+    let text = el.textContent; if (cs.textTransform === 'uppercase') text = text.toUpperCase();
+    const lines = wrapLines(ctx, text, r.width + 1);
+    const m = ctx.measureText('Hxgy'), asc = m.fontBoundingBoxAscent || size * 0.8, desc = m.fontBoundingBoxDescent || size * 0.2;
+    const x = (pg.align === 'center' ? r.left + r.width / 2 : r.left) - box.left;
+    lines.forEach((ln, i) => { ctx.fillText(ln, x, r.top - box.top + i * lh + (lh - (asc + desc)) / 2 + asc); });
+  }
+  ctx.globalAlpha = 1;
+  const blob = await new Promise((res) => cv.toBlob(res, 'image/png'));
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = ('kept-' + pg.heading + '-' + pg.body).toLowerCase().replace(/[^a-z0-9]+/g, '-') + '.png';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  toast('Exported PNG', null);
+}
+$('pgExport').onclick = exportPng;
+
+/* ---------- backup / restore ---------- */
+$('backupBtn').onclick = () => $('dlgBackup').showModal();
+$('dlgBCancel').onclick = () => $('dlgBackup').close();
+$('dlgBackup').addEventListener('click', (e) => { if (e.target === $('dlgBackup')) $('dlgBackup').close(); });
+$('dlgDownload').onclick = () => {
+  const blob = new Blob([JSON.stringify({ app: 'kept', version: 1, exportedAt: new Date().toISOString(), data: store })], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'kept-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  $('dlgBackup').close();
+  toast('Backup downloaded', null);
+};
+$('dlgRestore').onclick = () => $('restoreInput').click();
+$('restoreStart').onclick = () => $('restoreInput').click();
+$('restoreInput').onchange = async (e) => {
+  const file = e.target.files[0]; e.target.value = '';
+  if (!file) return;
+  let data;
+  try { const json = JSON.parse(await file.text()); if (json.app !== 'kept' || !json.data || typeof json.data !== 'object') throw new Error('not kept'); data = json.data; }
+  catch (err) { if ($('dlgBackup').open) $('dlgBackup').close(); toast('That file isn’t a Kept backup.', null); return; }
+  data.theme = store.theme || data.theme;
+  store = data;
+  persist();
+  location.reload();
+};
+
+/* ---------- start over ---------- */
+$('startOver').onclick = () => $('dlgStart').showModal();
+$('dlgCancel').onclick = () => $('dlgStart').close();
+$('dlgStart').addEventListener('click', (e) => { if (e.target === $('dlgStart')) $('dlgStart').close(); });
+$('dlgResort').onclick = () => {
+  for (const [name, v] of Object.entries(store.reviewed)) if (v === 'hide' && store.moves[name] === 'Hidden') delete store.moves[name];
+  store.reviewed = {}; store.reviewShelf = {}; store.sortShelf = null;
+  persist(); $('dlgStart').close();
+  enterSort();
+};
+$('dlgReset').onclick = () => {
+  const theme = store.theme;
+  store = { theme, saved: {}, moves: {}, reviewed: {}, reviewShelf: {}, pairs: [] };
+  families = [];
+  Object.assign(pg, { heading: null, body: null, caption: null, active: 'heading', reason: '', sugIdx: 0, text: Object.assign({}, PG_TEXT) });
+  persist(); $('dlgStart').close();
+  $('noteDenied').hidden = true;
+  show('v-onboard'); window.scrollTo(0, 0);
+};
+
+/* ---------- toast ---------- */
+let toastTimer, undoFn;
+function toast(text, undo) {
+  $('toastText').textContent = text; undoFn = undo;
+  $('toastUndo').hidden = !undo; $('toast').hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { $('toast').hidden = true; }, 5000);
+}
+$('toastUndo').onclick = () => { if (undoFn) undoFn(); $('toast').hidden = true; };
+
+/* ---------- events ---------- */
+$('allow').onclick = () => importInstalled(false);
+$('pickFiles').onclick = () => $('fileInput').click();
+$('pickFolder').onclick = () => $('folderInput').click();
+$('fileInput').onchange = (e) => importFiles([...e.target.files]);
+$('folderInput').onchange = (e) => importFiles([...e.target.files]);
+$('rescan').onclick = () => importInstalled(true);
+$('resumeBtn').onclick = () => {
+  const o = overall();
+  const cur = store.sortShelf && o.st[store.sortShelf] && o.st[store.sortShelf].total > o.st[store.sortShelf].done ? store.sortShelf : null;
+  if (cur) enterSort({ shelf: cur }); else enterSort();
+};
+$('home').onclick = (e) => { e.preventDefault(); if (families.length) { if ($('v-lib').hidden) openLibrary(); ui.page = 'library'; ui.shelf = 'All'; render(); } };
+$('navLib').onclick = () => { ui.page = 'library'; ui.shelf = 'All'; if ($('v-lib').hidden) openLibrary(); else render(); };
+$('mainnav').onclick = (e) => {
+  const b = e.target.closest('[data-page]'); if (!b) return;
+  const pg = b.dataset.page;
+  if (pg === 'sort') { enterSort(); return; }
+  if (pg === 'playground') { openPlayground(); return; }
+  ui.page = pg; if (pg === 'library') ui.shelf = 'All';
+  if ($('v-lib').hidden) openLibrary(); else render();
+};
+$('shelves').onclick = (e) => { const b = e.target.closest('[data-shelf]'); if (!b) return; ui.page = 'library'; ui.shelf = b.dataset.shelf; render(); };
+$('views').onclick = (e) => { const b = e.target.closest('[data-view]'); if (!b) return; ui.view = store.view = b.dataset.view; persist(); render(); };
+$('sortBtn').onclick = () => openMenu($('sortBtn'), { title: 'Sort by', items: SORTS, value: ui.sort, onPick: (v) => { ui.sort = v; $('sortBtn').innerHTML = esc(SORTS.find((s) => s.value === v).label) + CARET; renderResults(); } });
+$('size').oninput = (e) => { ui.size = +e.target.value; $('sizeVal').textContent = ui.size; document.querySelectorAll('.spec').forEach((el) => { el.style.fontSize = Math.round(ui.size * (ui.view === 'grid' ? 1 : ui.view === 'list' ? 1.5 : 2.2)) + 'px'; }); };
+$('pv').oninput = (e) => { ui.preview = e.target.value; const t = ui.preview.trim() || 'Sphinx of black quartz, judge my vow'; document.querySelectorAll('.spec').forEach((el) => { el.textContent = t; }); };
+let qTimer; $('q').oninput = (e) => { clearTimeout(qTimer); qTimer = setTimeout(() => { ui.q = e.target.value; renderResults(); }, 120); };
+
+$('results').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const kind = b.dataset.act;
+  if (kind === 'tolib') { ui.page = 'library'; ui.shelf = 'All'; render(); return; }
+  if (kind === 'toplay') { openPlayground(); return; }
+  if (kind === 'clearf') { resetFilters(); syncFilterBounds(); renderFilterBtn(); renderResults(); return; }
+  if (kind === 'openpair') { const pr = (store.pairs || []).find((x) => x.k === b.dataset.k); if (pr) { Object.assign(pg, { heading: pr.heading, body: pr.body, caption: pr.caption, bg: pr.bg || pg.bg }); savePg(); openPlayground(); } return; }
+  if (kind === 'unpair') {
+    const idx = store.pairs.findIndex((x) => x.k === b.dataset.k); if (idx < 0) return;
+    const [removed] = store.pairs.splice(idx, 1); persist();
+    b.closest('.hv').style.opacity = '0';
+    setTimeout(() => { renderSavedTabs(); renderResults(); }, 220);
+    toast('Removed pair', () => { store.pairs.splice(idx, 0, removed); persist(); renderSavedTabs(); renderResults(); });
+    return;
+  }
+  const f = filtered[+b.dataset.i];
+  if (kind === 'play') { pg.heading = f.family; suggestFor(true); savePg(); openPlayground(); return; }
+  if (kind === 'move') {
+    openMenu(b, { title: 'Move to shelf', items: shelfItems(), value: shelfOf(f), onPick: (to) => {
+      const from = shelfOf(f);
+      if (to === from) return;
+      if (to === f.auto) delete store.moves[f.family]; else store.moves[f.family] = to;
+      persist(); renderShelves(); renderResults();
+      toast('Moved ' + f.family + ' to ' + to, () => { if (from === f.auto) delete store.moves[f.family]; else store.moves[f.family] = from; persist(); renderShelves(); renderResults(); });
+    } });
+    return;
+  }
+  if (kind !== 'save') return;
+  const on = !store.saved[f.family];
+  if (on) store.saved[f.family] = new Date().toISOString(); else delete store.saved[f.family];
+  persist();
+  b.setAttribute('aria-pressed', on);
+  b.setAttribute('aria-label', (on ? 'Remove bookmark from ' : 'Bookmark ') + f.family);
+  b.querySelector('svg').setAttribute('fill', on ? 'currentColor' : 'none');
+  if (!on && ui.page === 'saved') {
+    b.closest('.hv').style.opacity = '0';
+    setTimeout(() => { renderShelves(); renderResults(); }, 220);
+    toast('Removed ' + f.family, () => { store.saved[f.family] = new Date().toISOString(); persist(); renderResults(); });
+  }
+});
+
+new IntersectionObserver((entries) => { if (entries[0].isIntersecting) renderMore(); }, { rootMargin: '1200px' }).observe($('sentinel'));
+
+/* drag and drop anywhere */
+let dragDepth = 0;
+addEventListener('dragenter', (e) => { if ([...e.dataTransfer.types].includes('Files')) { dragDepth++; $('dragcover').hidden = false; e.preventDefault(); } });
+addEventListener('dragleave', () => { if (--dragDepth <= 0) { dragDepth = 0; $('dragcover').hidden = true; } });
+addEventListener('dragover', (e) => e.preventDefault());
+addEventListener('drop', async (e) => {
+  e.preventDefault(); dragDepth = 0; $('dragcover').hidden = true;
+  const files = [];
+  const items = [...(e.dataTransfer.items || [])].map((it) => it.webkitGetAsEntry && it.webkitGetAsEntry()).filter(Boolean);
+  if (items.length) { for (const en of items) await walkEntry(en, files); } else files.push(...e.dataTransfer.files);
+  importFiles(files);
+});
+
+/* ---------- start ---------- */
+if (!('queryLocalFonts' in window)) {
+  $('noteUnsupported').hidden = false; $('allow').hidden = true;
+  if (matchMedia('(hover: none) and (pointer: coarse)').matches) {
+    $('unsTitle').textContent = 'Kept works with the fonts on a computer.';
+    $('unsText').textContent = 'Open this page in Chrome or Edge on your Mac to bring in your Font Book. On this device you can still look through font files you choose.';
+    $('dropzone').hidden = true;
+  } else if (!/Mac/i.test(navigator.platform || navigator.userAgent)) {
+    $('unsText').textContent = 'Open Kept in Chrome or Edge to bring in all your installed fonts at once. Here, you can still add font files below.';
+  }
+}
+// earlier builds recorded reviews without a shelf; credit them to the shelf they sit on now
+for (const name of Object.keys(store.reviewed)) if (!store.reviewShelf[name]) { const f = families.find((x) => x.family === name); if (f) store.reviewShelf[name] = shelfOf(f) === 'Hidden' ? f.auto : shelfOf(f); }
+if (!families.length) show('v-onboard');
+else if (store.lastView === 'playground') openPlayground();
+else if (store.lastView === 'library' || !overall().left) openLibrary();
+else enterSort({ welcome: true });
+upgradeMeta();
+})();
+</script>
+</body>
+</html>
