@@ -40,4 +40,4 @@ Any static host works, with no build step. The publish directory is the reposito
 
 In the host's dashboard, open the site → Custom domains → add your domain, then follow the DNS record it shows you. HTTPS is set up automatically.
 
-After the domain is live, change `og:image` in `index.html` to the full address (for example `https://yourdomain.com/og.png`), because some sites only read absolute image links in previews.
+Live at https://kept.ellakimyun.workers.dev. If you add a custom domain, update `og:image`, `og:url` and the canonical link in `index.html` to the new address.
