@@ -1,0 +1,13 @@
+{
+  "name": "Kept",
+  "id": "kept-font-shelf",
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "ui.html",
+  "editorType": ["figma"],
+  "documentAccess": "dynamic-page",
+  "networkAccess": {
+    "allowedDomains": ["https://fonts.googleapis.com", "https://fonts.gstatic.com"],
+    "reasoning": "Loads Kept's interface typefaces (Geist and Instrument Serif) from Google Fonts. No user data leaves Figma."
+  }
+}

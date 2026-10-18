@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400&family=Instrument+Serif&display=swap">
+<style>
+:root{--bg:#F4F3F0;--ink:#0E0E0D;--ink2:#5E5D59;--line:#DCDAD5;--brand:#E0261A;--surface:#FFFFFF}
+html.figma-dark{--bg:#0B0B0A;--ink:#EDECE8;--ink2:#9A9893;--line:#2A2927;--brand:#FF4433;--surface:#151514}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:13px/1.45 'Geist','Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+[hidden]{display:none!important}
+.app{display:flex;flex-direction:column;height:100%}
+.mono{font-family:'Geist Mono',ui-monospace,monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2)}
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 16px 6px}
+.logo{font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:var(--brand)}
+.bt{border:0;background:transparent;padding:0;height:32px;color:var(--ink2);cursor:pointer;transition:color .2s ease}
+.bt:hover{color:var(--ink);text-decoration:underline;text-underline-offset:4px}
+.bt:disabled{opacity:.35;cursor:default;text-decoration:none;color:var(--ink2)}
+.bp{height:36px;padding:0 16px;border:0;border-radius:999px;background:var(--ink);color:var(--bg);cursor:pointer;transition:opacity .2s ease}
+.bp:hover{opacity:.82}.bp:disabled{opacity:.4;cursor:default}
+.bs{height:32px;padding:0 12px;border:1px solid var(--line);border-radius:999px;background:transparent;cursor:pointer;transition:border-color .2s ease}
+.bs:hover{border-color:var(--ink)}
+.tabs{display:flex;gap:20px;padding:0 16px;border-bottom:1px solid var(--line)}
+.tab{border:0;background:transparent;padding:10px 0;color:var(--ink2);cursor:pointer;display:flex;gap:6px;align-items:baseline;transition:color .2s ease,opacity .2s ease}
+.tab small{font-family:'Geist Mono',monospace;font-size:10px;color:var(--ink2)}
+.tab:hover{color:var(--ink)}
+.tab[aria-selected="true"]{color:var(--ink);text-decoration:underline;text-underline-offset:6px}
+.tab[aria-selected="true"]:hover{opacity:.7}
+main{flex:1;overflow:auto;padding:12px 16px 16px}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
+.src{display:flex;gap:16px}
+.src .tab{padding:6px 0}
+.search{width:100%;height:36px;border:0;border-bottom:1px solid var(--line);background:transparent;outline:none;margin-bottom:4px}
+.search:focus{border-bottom-color:var(--ink)}
+.item{position:relative;padding:14px 0;border-bottom:1px solid var(--line);transition:box-shadow .2s ease}
+.item:hover,.item:focus-within{box-shadow:inset 0 -1px 0 var(--ink)}
+.item .top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.nm{font-size:20px;line-height:1.15;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.sub{font-size:13px;color:var(--ink2);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.meta{margin-top:6px}
+.warn{margin-top:6px;font-size:12px;color:var(--brand)}
+.acts{display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:8px}
+.acts .bt{height:24px;font-size:12px}
+.bm{width:32px;height:32px;margin:-6px -8px 0 0;border:0;background:transparent;color:var(--ink2);cursor:pointer;display:flex;align-items:center;justify-content:center;flex:none;transition:color .2s ease,opacity .2s ease}
+.bm:hover{color:var(--ink)}.bm svg{transition:fill .2s ease}
+.bm[aria-pressed="false"]:hover svg{fill:currentColor}
+.bm[aria-pressed="true"]{color:var(--ink)}.bm[aria-pressed="true"]:hover{opacity:.7}
+.empty{padding:32px 0;display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+.empty h2{margin:0;font-family:'Instrument Serif',Georgia,serif;font-weight:400;font-size:30px;line-height:1.1}
+.empty p{margin:0;color:var(--ink2)}
+.builder{display:flex;flex-direction:column;gap:12px;padding:12px 0 16px;border-bottom:1px solid var(--line);margin-bottom:4px}
+.builder label{display:flex;flex-direction:column;gap:2px}
+.builder input{height:34px;border:0;border-bottom:1px solid var(--line);background:transparent;outline:none}
+.builder input:focus{border-bottom-color:var(--ink)}
+.builder .row{display:flex;gap:12px;align-items:center}
+.more{margin-top:12px;color:var(--ink2);font-size:12px}
+footer{border-top:1px solid var(--line);padding:10px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:44px}
+#sel{color:var(--ink2);font-size:12px}
+#sel b{color:var(--ink);font-weight:500}
+.notice{position:fixed;left:12px;right:12px;bottom:56px;padding:10px 14px;border-radius:12px;background:var(--ink);color:var(--bg);font-size:12px;line-height:1.4;opacity:0;transform:translateY(6px);transition:opacity .2s ease,transform .2s ease;pointer-events:none}
+.notice.on{opacity:1;transform:none}
+.notice.bad{background:var(--brand);color:#fff}
+.menu{position:fixed;z-index:10;min-width:200px;padding:8px 0;background:var(--bg);border:1px solid var(--ink);box-shadow:0 10px 28px rgba(0,0,0,.12)}
+.menu .mt{display:block;padding:2px 14px 8px}
+.mi{display:flex;align-items:center;gap:10px;width:100%;height:32px;padding:0 14px;border:0;background:transparent;color:var(--ink2);text-align:left;cursor:pointer}
+.mi .dot{width:8px;height:8px;border-radius:50%;border:1px solid currentColor}
+.mi:hover,.mi:focus-visible{color:var(--ink);outline:none}.mi:hover .dot,.mi:focus-visible .dot{background:currentColor}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <span class="logo">Kept</span>
+    <button type="button" class="bt" id="load">Load from Kept</button>
+    <input type="file" id="file" accept=".json,application/json" hidden>
+  </header>
+  <nav class="tabs" role="tablist">
+    <button type="button" class="tab" role="tab" data-tab="pairs" aria-selected="true">Pairs <small id="nPairs">0</small></button>
+    <button type="button" class="tab" role="tab" data-tab="fonts" aria-selected="false">Fonts <small id="nSaved">0</small></button>
+  </nav>
+  <main id="main">
+    <section id="v-pairs">
+      <div class="bar"><span class="mono">Your pairs</span><button type="button" class="bt" id="newPair">New pair</button></div>
+      <form class="builder" id="builder" hidden>
+        <label><span class="mono">Heading</span><input list="famlist" id="bHead" placeholder="Search your fonts" autocomplete="off" required></label>
+        <label><span class="mono">Body</span><input list="famlist" id="bBody" placeholder="Search your fonts" autocomplete="off" required></label>
+        <label><span class="mono">Caption (optional)</span><input list="famlist" id="bCap" placeholder="Same as body" autocomplete="off"></label>
+        <div class="row"><button type="submit" class="bp">Save pair</button><button type="button" class="bt" id="bCancel">Cancel</button></div>
+      </form>
+      <div id="pairs"></div>
+    </section>
+    <section id="v-fonts" hidden>
+      <div class="bar">
+        <div class="src" role="group" aria-label="Show">
+          <button type="button" class="tab" data-src="saved" aria-selected="true">Saved <small id="nSaved2">0</small></button>
+          <button type="button" class="tab" data-src="all" aria-selected="false">All in Figma <small id="nAll">0</small></button>
+        </div>
+      </div>
+      <input class="search" id="q" type="search" placeholder="Find a font">
+      <div id="fonts"></div>
+    </section>
+  </main>
+  <footer><span id="sel">Select text layers to apply fonts.</span><button type="button" class="bt" id="clear" style="font-size:12px">Clear</button></footer>
+</div>
+<datalist id="famlist"></datalist>
+<div class="menu" id="menu" role="menu" hidden></div>
+<div class="notice" id="notice" role="status"></div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const post = (m) => parent.postMessage({ pluginMessage: m }, '*');
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const quote = (f) => '"' + String(f).replace(/["\\]/g, '\\$&') + '", system-ui';
+const BM = '<svg width="15" height="15" viewBox="0 0 24 24" fill="FILL" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg>';
+let state = { store: { saved: {}, pairs: [], notes: {}, shelves: {} }, families: [], styleCounts: {} };
+let tab = 'pairs', src = 'saved', q = '', selCount = 0;
+const has = (fam) => fam && state.styleCounts[fam] != null;
+
+/* ---------- render ---------- */
+function render() {
+  const s = state.store, saved = Object.keys(s.saved);
+  $('nPairs').textContent = s.pairs.length; $('nSaved').textContent = saved.length; $('nSaved2').textContent = saved.length; $('nAll').textContent = state.families.length.toLocaleString();
+  document.querySelectorAll('[data-tab]').forEach((b) => b.setAttribute('aria-selected', b.dataset.tab === tab));
+  document.querySelectorAll('[data-src]').forEach((b) => b.setAttribute('aria-selected', b.dataset.src === src));
+  $('v-pairs').hidden = tab !== 'pairs'; $('v-fonts').hidden = tab !== 'fonts';
+  $('famlist').innerHTML = [...new Set([...saved.filter(has), ...state.families])].slice(0, 3000).map((f) => `<option value="${esc(f)}">`).join('');
+  if (tab === 'pairs') renderPairs(); else renderFonts();
+}
+function renderPairs() {
+  const list = state.store.pairs;
+  if (!list.length) {
+    $('pairs').innerHTML = `<div class="empty"><h2>No pairs yet.</h2><p>Load a backup from Kept to bring in the pairs you saved there, or make one here with New pair.</p><button type="button" class="bs" data-act="load">Load from Kept</button></div>`;
+    return;
+  }
+  $('pairs').innerHTML = list.map((p, i) => {
+    const missing = [p.heading, p.body, p.caption].filter((f) => f && !has(f));
+    return `<div class="item" data-i="${i}">
+      <div class="top"><div style="min-width:0"><div class="nm" data-f="h">${esc(p.heading)}</div><div class="sub" data-f="b">${esc(p.body)}${p.caption && p.caption !== p.body ? ' · ' + esc(p.caption) : ''}</div></div>
+        <button type="button" class="bm" data-act="unpair" aria-pressed="true" aria-label="Remove pair">${BM.replace('FILL', 'currentColor')}</button></div>
+      ${missing.length ? `<div class="warn">Not available in Figma: ${esc(missing.join(', '))}</div>` : ''}
+      <div class="acts">
+        <button type="button" class="bt" data-act="apply"${missing.length ? ' disabled' : ''}>Apply to selection</button>
+        <button type="button" class="bt" data-act="card"${missing.length ? ' disabled' : ''}>Insert card</button>
+        <button type="button" class="bt" data-act="styles"${missing.length ? ' disabled' : ''}>Create text styles</button>
+      </div></div>`;
+  }).join('');
+  $('pairs').querySelectorAll('.item').forEach((el) => {
+    const p = list[+el.dataset.i];
+    el.querySelector('[data-f="h"]').style.fontFamily = quote(p.heading);
+    el.querySelector('[data-f="b"]').style.fontFamily = quote(p.body);
+  });
+}
+function renderFonts() {
+  const s = state.store, ql = q.trim().toLowerCase();
+  let list = src === 'saved' ? Object.keys(s.saved).sort((a, b) => a.localeCompare(b)) : state.families;
+  if (ql) list = list.filter((f) => f.toLowerCase().includes(ql));
+  if (!list.length) {
+    $('fonts').innerHTML = src === 'saved' && !ql
+      ? `<div class="empty"><h2>No saved fonts yet.</h2><p>Load a backup from Kept, or bookmark fonts from All in Figma.</p><button type="button" class="bs" data-act="load">Load from Kept</button></div>`
+      : `<div class="empty"><p>Nothing called “${esc(q)}”.</p></div>`;
+    return;
+  }
+  const LIMIT = 150, shown = list.slice(0, LIMIT);
+  $('fonts').innerHTML = shown.map((f, i) => {
+    const on = !!s.saved[f], n = state.styleCounts[f], shelf = s.shelves[f];
+    return `<div class="item" data-fam="${esc(f)}">
+      <div class="top"><div class="nm" data-i="${i}">${esc(f)}</div>
+        <button type="button" class="bm" data-act="save" aria-pressed="${on}" aria-label="${on ? 'Remove bookmark from ' : 'Bookmark '}${esc(f)}">${BM.replace('FILL', on ? 'currentColor' : 'none')}</button></div>
+      <div class="meta mono">${[shelf, n != null ? n + (n === 1 ? ' style' : ' styles') : null].filter(Boolean).map(esc).join(' · ')}</div>
+      ${n == null ? '<div class="warn">Not available in Figma</div>' : `<div class="acts"><button type="button" class="bt" data-act="applyfont">Apply to selection</button><button type="button" class="bt" data-act="specimen">Insert specimen</button></div>`}
+      ${s.notes[f] ? `<div class="sub" style="white-space:normal">“${esc(s.notes[f])}”</div>` : ''}
+    </div>`;
+  }).join('') + (list.length > LIMIT ? `<p class="more">Showing ${LIMIT} of ${list.length.toLocaleString()}. Search to find the rest.</p>` : '');
+  $('fonts').querySelectorAll('.nm[data-i]').forEach((el) => { el.style.fontFamily = quote(shown[+el.dataset.i]); });
+}
+function renderSel() {
+  $('sel').innerHTML = selCount ? `<b>${selCount}</b> text layer${selCount === 1 ? '' : 's'} selected` : 'Select text layers to apply fonts.';
+}
+
+/* ---------- notice + menu ---------- */
+let noticeTimer;
+function notice(text, ok) {
+  const n = $('notice'); n.textContent = text; n.className = 'notice on' + (ok === false ? ' bad' : '');
+  clearTimeout(noticeTimer); noticeTimer = setTimeout(() => { n.className = 'notice'; }, 3200);
+}
+let menuPick = null;
+function openMenu(anchor, title, items, onPick) {
+  const m = $('menu');
+  m.innerHTML = `<span class="mt mono">${esc(title)}</span>` + items.map(([v, l]) => `<button type="button" class="mi" role="menuitem" data-v="${v}"><span class="dot"></span>${esc(l)}</button>`).join('');
+  m.hidden = false;
+  const r = anchor.getBoundingClientRect();
+  m.style.left = Math.min(r.left, innerWidth - m.offsetWidth - 8) + 'px';
+  m.style.top = (r.bottom + m.offsetHeight + 8 < innerHeight ? r.bottom + 6 : r.top - m.offsetHeight - 6) + 'px';
+  menuPick = onPick; m.querySelector('.mi').focus();
+}
+const closeMenu = () => { $('menu').hidden = true; menuPick = null; };
+$('menu').addEventListener('click', (e) => { const b = e.target.closest('.mi'); if (!b) return; const f = menuPick; closeMenu(); f(b.dataset.v); });
+$('menu').addEventListener('keydown', (e) => {
+  const items = [...$('menu').querySelectorAll('.mi')], i = items.indexOf(document.activeElement);
+  if (e.key === 'ArrowDown') items[(i + 1) % items.length].focus(); else if (e.key === 'ArrowUp') items[(i - 1 + items.length) % items.length].focus(); else if (e.key === 'Escape') closeMenu(); else return;
+  e.preventDefault();
+});
+document.addEventListener('pointerdown', (e) => { if (!$('menu').hidden && !$('menu').contains(e.target)) closeMenu(); });
+
+/* ---------- events ---------- */
+document.querySelectorAll('[data-tab]').forEach((b) => b.onclick = () => { tab = b.dataset.tab; render(); });
+document.querySelectorAll('[data-src]').forEach((b) => b.onclick = () => { src = b.dataset.src; render(); });
+$('q').oninput = (e) => { q = e.target.value; renderFonts(); };
+$('load').onclick = () => $('file').click();
+$('file').onchange = async (e) => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  try {
+    const json = JSON.parse(await f.text());
+    if (json.app !== 'kept' || !json.data) throw new Error('not kept');
+    post({ type: 'import', data: json.data });
+  } catch (err) { notice('That file isn’t a Kept backup. In Kept, open Library → Backup → Download a backup.', false); }
+};
+$('newPair').onclick = () => { $('builder').hidden = !$('builder').hidden; if (!$('builder').hidden) $('bHead').focus(); };
+$('bCancel').onclick = () => { $('builder').hidden = true; };
+$('builder').onsubmit = (e) => {
+  e.preventDefault();
+  const h = $('bHead').value.trim(), b = $('bBody').value.trim(), c = $('bCap').value.trim() || b;
+  const bad = [h, b, c].filter((f) => !has(f));
+  if (bad.length) { notice(`Not available in Figma: ${bad.join(', ')}. Pick a name from the list.`, false); return; }
+  post({ type: 'save-pair', pair: { heading: h, body: b, caption: c } });
+  $('builder').reset(); $('builder').hidden = true;
+};
+$('clear').onclick = () => openMenu($('clear'), 'Clear plugin data?', [['yes', 'Clear bookmarks and pairs here'], ['no', 'Cancel']], (v) => { if (v === 'yes') post({ type: 'clear' }); });
+const ROLES = [['auto', 'Auto, by text size'], ['heading', 'Heading font'], ['body', 'Body font'], ['caption', 'Caption font']];
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-act]'); if (!b || b.disabled) return;
+  const act = b.dataset.act;
+  if (act === 'load') { $('file').click(); return; }
+  const item = b.closest('.item');
+  if (item && item.dataset.i != null && tab === 'pairs') {
+    const p = state.store.pairs[+item.dataset.i];
+    if (act === 'unpair') post({ type: 'remove-pair', k: p.k });
+    if (act === 'card') post({ type: 'insert-card', pair: p });
+    if (act === 'styles') post({ type: 'create-styles', pair: p });
+    if (act === 'apply') {
+      if (!selCount) { notice('Select one or more text layers first.', false); return; }
+      openMenu(b, 'Apply as', ROLES, (role) => post({ type: 'apply', role, families: { heading: p.heading, body: p.body, caption: p.caption || p.body } }));
+    }
+    return;
+  }
+  const fam = item && item.dataset.fam;
+  if (!fam) return;
+  if (act === 'save') post({ type: 'toggle-save', family: fam });
+  if (act === 'specimen') post({ type: 'insert-specimen', family: fam });
+  if (act === 'applyfont') {
+    if (!selCount) { notice('Select one or more text layers first.', false); return; }
+    post({ type: 'apply', role: 'heading', families: { heading: fam } });
+  }
+});
+
+/* ---------- messages from Figma ---------- */
+onmessage = (e) => {
+  const m = e.data && e.data.pluginMessage; if (!m) return;
+  if (m.type === 'state') { state = m; render(); }
+  if (m.type === 'selection') { selCount = m.count; renderSel(); }
+  if (m.type === 'notice') notice(m.message, m.ok);
+};
+post({ type: 'ready' });
+</script>
+</body>
+</html>
