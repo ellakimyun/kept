@@ -37,6 +37,23 @@ main{flex:1;overflow:auto;padding:12px 16px 16px}
 .item{position:relative;padding:14px 0;border-bottom:1px solid var(--line);transition:box-shadow .2s ease}
 .item:hover,.item:focus-within{box-shadow:inset 0 -1px 0 var(--ink)}
 .item .top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+/* font rows: the whole row applies the font */
+.frow{display:grid;grid-template-columns:minmax(0,1fr) auto;padding:0;margin:0 -8px;border-bottom:1px solid var(--line);transition:background-color .2s ease,box-shadow .2s ease}
+.frow .area{display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0;width:100%;padding:14px 8px;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer;font:inherit}
+.frow .area:disabled{cursor:default}
+.frow .area .nm{max-width:100%}
+.frow .side{display:flex;flex-direction:column;align-items:flex-end;justify-content:space-between;padding:12px 8px 12px 0}
+.frow .bm{margin:0}
+.frow .spec{height:24px;font-size:12px;opacity:0;transition:opacity .2s ease,color .2s ease}
+.hint{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink);opacity:0;transform:translateX(-4px);transition:opacity .2s ease,transform .2s ease}
+.hint.none{color:var(--ink2)}
+.frow:hover,.frow:focus-within{box-shadow:inset 0 0 0 1px var(--ink)}
+.frow:hover .hint,.frow:focus-within .hint,.frow:hover .spec,.frow:focus-within .spec{opacity:1;transform:none}
+.frow .area:active{background:color-mix(in srgb,var(--ink) 6%,transparent)}
+.frow .area:focus-visible{outline:none}
+.frow.na:hover,.frow.na:focus-within{box-shadow:none}
+.frow.done .hint{opacity:1;transform:none}
+@media (hover:none){.hint,.frow .spec{opacity:1;transform:none}}
 .nm{font-size:20px;line-height:1.15;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .sub{font-size:13px;color:var(--ink2);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .meta{margin-top:6px}
@@ -200,19 +217,28 @@ function renderFonts() {
   }
   const LIMIT = 150, shown = list.slice(0, LIMIT);
   $('fonts').innerHTML = shown.map((f, i) => {
-    const on = !!s.saved[f], n = state.styleCounts[f], shelf = s.shelves[f];
-    return `<div class="item" data-fam="${esc(f)}">
-      <div class="top"><div class="nm" data-i="${i}">${esc(f)}</div>
-        <button type="button" class="bm" data-act="save" aria-pressed="${on}" aria-label="${on ? 'Remove bookmark from ' : 'Bookmark '}${esc(f)}">${BM.replace('FILL', on ? 'currentColor' : 'none')}</button></div>
-      <div class="meta mono">${[shelf, n != null ? n + (n === 1 ? ' style' : ' styles') : null].filter(Boolean).map(esc).join(' · ')}</div>
-      ${n == null ? '<div class="warn">Not available in Figma</div>' : `<div class="acts"><button type="button" class="bt" data-act="applyfont">Apply to selection</button><button type="button" class="bt" data-act="specimen">Insert specimen</button></div>`}
-      ${s.notes[f] ? `<div class="sub" style="white-space:normal">“${esc(s.notes[f])}”</div>` : ''}
+    const on = !!s.saved[f], n = state.styleCounts[f], shelf = s.shelves[f], na = n == null;
+    return `<div class="frow${na ? ' na' : ''}" data-fam="${esc(f)}">
+      <button type="button" class="area" data-act="applyfont"${na ? ' disabled' : ''} aria-label="${na ? esc(f) + ', not available in Figma' : 'Apply ' + esc(f) + ' to selected text'}">
+        <span class="nm" data-i="${i}">${esc(f)}</span>
+        <span class="meta mono">${[shelf, n != null ? n + (n === 1 ? ' style' : ' styles') : null].filter(Boolean).map(esc).join(' · ')}</span>
+        ${s.notes[f] ? `<span class="sub" style="white-space:normal">“${esc(s.notes[f])}”</span>` : ''}
+        ${na ? '<span class="warn">Not available in Figma</span>' : `<span class="hint${selCount ? '' : ' none'}">${hintText()}</span>`}
+      </button>
+      <div class="side">
+        <button type="button" class="bm" data-act="save" aria-pressed="${on}" aria-label="${on ? 'Remove bookmark from ' : 'Bookmark '}${esc(f)}">${BM.replace('FILL', on ? 'currentColor' : 'none')}</button>
+        ${na ? '' : '<button type="button" class="bt spec" data-act="specimen">Specimen</button>'}
+      </div>
     </div>`;
   }).join('') + (list.length > LIMIT ? `<p class="more">Showing ${LIMIT} of ${list.length.toLocaleString()}. Search to find the rest.</p>` : '');
   $('fonts').querySelectorAll('.nm[data-i]').forEach((el) => { el.style.fontFamily = quote(shown[+el.dataset.i]); });
 }
+function hintText() {
+  return selCount ? `Apply to ${selCount} text layer${selCount === 1 ? '' : 's'} <span aria-hidden="true">→</span>` : 'Select text on the canvas to apply';
+}
 function renderSel() {
   $('sel').innerHTML = selCount ? `<b>${selCount}</b> text layer${selCount === 1 ? '' : 's'} selected` : 'Select text layers to apply fonts.';
+  document.querySelectorAll('.hint').forEach((h) => { h.innerHTML = hintText(); h.classList.toggle('none', !selCount); });
 }
 
 /* ---------- notice + menu ---------- */
@@ -283,13 +309,16 @@ document.addEventListener('click', (e) => {
     }
     return;
   }
-  const fam = item && item.dataset.fam;
+  const row = b.closest('.frow'), fam = row ? row.dataset.fam : (item && item.dataset.fam);
   if (!fam) return;
   if (act === 'save') post({ type: 'toggle-save', family: fam });
   if (act === 'specimen') post({ type: 'insert-specimen', family: fam });
   if (act === 'applyfont') {
-    if (!selCount) { notice('Select one or more text layers first.', false); return; }
+    if (!selCount) { notice('Select one or more text layers on the canvas first, then click the font.', false); return; }
     post({ type: 'apply', role: 'heading', families: { heading: fam } });
+    const row = b.closest('.frow'), h = row.querySelector('.hint');
+    row.classList.add('done'); h.textContent = 'Applied';
+    setTimeout(() => { row.classList.remove('done'); h.innerHTML = hintText(); }, 1400);
   }
 });
 
