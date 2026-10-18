@@ -50,6 +50,19 @@ main{flex:1;overflow:auto;padding:12px 16px 16px}
 .empty{padding:32px 0;display:flex;flex-direction:column;gap:10px;align-items:flex-start}
 .empty h2{margin:0;font-family:'Instrument Serif',Georgia,serif;font-weight:400;font-size:30px;line-height:1.1}
 .empty p{margin:0;color:var(--ink2)}
+.guide h1{margin:4px 0 6px;font-family:'Instrument Serif',Georgia,serif;font-weight:400;font-size:30px;line-height:1.1}
+.guide .lede{margin:0 0 14px;color:var(--ink2)}
+.steps{list-style:none;margin:0;padding:0;border-top:1px solid var(--line);counter-reset:s}
+.steps li{display:grid;grid-template-columns:22px 1fr;gap:2px 10px;padding:12px 0;border-bottom:1px solid var(--line);counter-increment:s}
+.steps li::before{content:counter(s);font-family:'Geist Mono',monospace;font-size:11px;color:var(--ink2);padding-top:2px}
+.steps b{font-weight:500}
+.steps span{grid-column:2;color:var(--ink2)}
+.path,.steps .path,.faq .path{color:var(--ink);white-space:nowrap}
+.faq{margin:18px 0 0;display:flex;flex-direction:column;gap:12px}
+.faq div{display:flex;flex-direction:column;gap:2px}
+.faq dt{font-weight:500}.faq dd{margin:0;color:var(--ink2)}
+.guide a{color:var(--ink)}
+.guide .go{display:flex;gap:12px;align-items:center;margin-top:18px}
 .builder{display:flex;flex-direction:column;gap:12px;padding:12px 0 16px;border-bottom:1px solid var(--line);margin-bottom:4px}
 .builder label{display:flex;flex-direction:column;gap:2px}
 .builder input{height:34px;border:0;border-bottom:1px solid var(--line);background:transparent;outline:none}
@@ -74,7 +87,7 @@ footer{border-top:1px solid var(--line);padding:10px 16px;display:flex;justify-c
 <div class="app">
   <header>
     <span class="logo">Kept</span>
-    <button type="button" class="bt" id="load">Load from Kept</button>
+    <span style="display:flex;gap:16px"><button type="button" class="bt" id="guideBtn" aria-pressed="false">Guide</button><button type="button" class="bt" id="load">Load from Kept</button></span>
     <input type="file" id="file" accept=".json,application/json" hidden>
   </header>
   <nav class="tabs" role="tablist">
@@ -82,6 +95,23 @@ footer{border-top:1px solid var(--line);padding:10px 16px;display:flex;justify-c
     <button type="button" class="tab" role="tab" data-tab="fonts" aria-selected="false">Fonts <small id="nSaved">0</small></button>
   </nav>
   <main id="main">
+    <section id="v-guide" class="guide" hidden>
+      <span class="mono">How it works</span>
+      <h1>Your Kept fonts, in Figma.</h1>
+      <p class="lede">Bring in the fonts and pairs you saved on the Kept website, then use them on your designs.</p>
+      <ol class="steps">
+        <li><b>Download a backup from Kept</b><span>On the Kept website, open <span class="path">Library</span>. Next to Rescan, click <span class="path">Backup → Download a backup</span>. It saves a file named <span class="path">kept-backup-(date).json</span>.</span></li>
+        <li><b>Load it here</b><span>Click <span class="path">Load from Kept</span> at the top and choose that file. Your saved fonts, pairs and notes appear under Pairs and Fonts.</span></li>
+        <li><b>Use it on your design</b><span>Select text layers, then choose <span class="path">Apply to selection</span> on a pair. <span class="path">Auto</span> gives the largest text the heading font, the smallest the caption font, and the rest the body font.</span></li>
+      </ol>
+      <dl class="faq">
+        <div><dt>No backup yet?</dt><dd>You can start here: bookmark fonts under <span class="path">Fonts → All in Figma</span>, and make pairs with <span class="path">New pair</span>.</dd></div>
+        <div><dt>Loaded a backup before?</dt><dd>Loading a newer one only adds what’s new. Nothing you saved here is replaced.</dd></div>
+        <div><dt>“Not available in Figma”?</dt><dd>That font isn’t installed where Figma can see it. Install it on this computer, then restart the Figma desktop app.</dd></div>
+        <div><dt>Where is my data kept?</dt><dd>In Figma, on this computer. Nothing is uploaded, and the plugin never changes your font files.</dd></div>
+      </dl>
+      <div class="go"><button type="button" class="bp" data-act="load">Load from Kept</button><button type="button" class="bt" id="guideSkip">Start without a backup</button></div>
+    </section>
     <section id="v-pairs">
       <div class="bar"><span class="mono">Your pairs</span><button type="button" class="bt" id="newPair">New pair</button></div>
       <form class="builder" id="builder" hidden>
@@ -103,7 +133,7 @@ footer{border-top:1px solid var(--line);padding:10px 16px;display:flex;justify-c
       <div id="fonts"></div>
     </section>
   </main>
-  <footer><span id="sel">Select text layers to apply fonts.</span><button type="button" class="bt" id="clear" style="font-size:12px">Clear</button></footer>
+  <footer><span id="sel">Select text layers to apply fonts.</span><button type="button" class="bt" id="clear" style="font-size:12px">Clear data</button></footer>
 </div>
 <datalist id="famlist"></datalist>
 <div class="menu" id="menu" role="menu" hidden></div>
@@ -116,7 +146,7 @@ const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&
 const quote = (f) => '"' + String(f).replace(/["\\]/g, '\\$&') + '", system-ui';
 const BM = '<svg width="15" height="15" viewBox="0 0 24 24" fill="FILL" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg>';
 let state = { store: { saved: {}, pairs: [], notes: {}, shelves: {} }, families: [], styleCounts: {} };
-let tab = 'pairs', src = 'saved', q = '', selCount = 0;
+let tab = 'pairs', src = 'saved', q = '', selCount = 0, guide = null; // guide: null = decide from data
 const has = (fam) => fam && state.styleCounts[fam] != null;
 
 /* ---------- render ---------- */
@@ -125,7 +155,12 @@ function render() {
   $('nPairs').textContent = s.pairs.length; $('nSaved').textContent = saved.length; $('nSaved2').textContent = saved.length; $('nAll').textContent = state.families.length.toLocaleString();
   document.querySelectorAll('[data-tab]').forEach((b) => b.setAttribute('aria-selected', b.dataset.tab === tab));
   document.querySelectorAll('[data-src]').forEach((b) => b.setAttribute('aria-selected', b.dataset.src === src));
-  $('v-pairs').hidden = tab !== 'pairs'; $('v-fonts').hidden = tab !== 'fonts';
+  const showGuide = guide === null ? (!s.pairs.length && !saved.length) : guide;
+  $('v-guide').hidden = !showGuide; $('guideBtn').setAttribute('aria-pressed', showGuide);
+  $('guideBtn').style.color = showGuide ? 'var(--ink)' : '';
+  document.querySelectorAll('[data-tab]').forEach((b) => b.setAttribute('aria-selected', !showGuide && b.dataset.tab === tab));
+  $('v-pairs').hidden = showGuide || tab !== 'pairs'; $('v-fonts').hidden = showGuide || tab !== 'fonts';
+  if (showGuide) return;
   $('famlist').innerHTML = [...new Set([...saved.filter(has), ...state.families])].slice(0, 3000).map((f) => `<option value="${esc(f)}">`).join('');
   if (tab === 'pairs') renderPairs(); else renderFonts();
 }
@@ -206,7 +241,9 @@ $('menu').addEventListener('keydown', (e) => {
 document.addEventListener('pointerdown', (e) => { if (!$('menu').hidden && !$('menu').contains(e.target)) closeMenu(); });
 
 /* ---------- events ---------- */
-document.querySelectorAll('[data-tab]').forEach((b) => b.onclick = () => { tab = b.dataset.tab; render(); });
+document.querySelectorAll('[data-tab]').forEach((b) => b.onclick = () => { tab = b.dataset.tab; guide = false; render(); });
+$('guideBtn').onclick = () => { const on = $('guideBtn').getAttribute('aria-pressed') === 'true'; guide = !on; render(); };
+$('guideSkip').onclick = () => { guide = false; tab = 'fonts'; src = 'all'; render(); };
 document.querySelectorAll('[data-src]').forEach((b) => b.onclick = () => { src = b.dataset.src; render(); });
 $('q').oninput = (e) => { q = e.target.value; renderFonts(); };
 $('load').onclick = () => $('file').click();
@@ -228,7 +265,7 @@ $('builder').onsubmit = (e) => {
   post({ type: 'save-pair', pair: { heading: h, body: b, caption: c } });
   $('builder').reset(); $('builder').hidden = true;
 };
-$('clear').onclick = () => openMenu($('clear'), 'Clear plugin data?', [['yes', 'Clear bookmarks and pairs here'], ['no', 'Cancel']], (v) => { if (v === 'yes') post({ type: 'clear' }); });
+$('clear').onclick = () => openMenu($('clear'), 'Only this plugin. Kept website stays as is.', [['yes', 'Remove bookmarks and pairs here'], ['no', 'Keep everything']], (v) => { if (v === 'yes') post({ type: 'clear' }); });
 const ROLES = [['auto', 'Auto, by text size'], ['heading', 'Heading font'], ['body', 'Body font'], ['caption', 'Caption font']];
 document.addEventListener('click', (e) => {
   const b = e.target.closest('[data-act]'); if (!b || b.disabled) return;
@@ -259,7 +296,7 @@ document.addEventListener('click', (e) => {
 /* ---------- messages from Figma ---------- */
 onmessage = (e) => {
   const m = e.data && e.data.pluginMessage; if (!m) return;
-  if (m.type === 'state') { state = m; render(); }
+  if (m.type === 'state') { const had = state.store.pairs.length + Object.keys(state.store.saved).length; state = m; if (!had && guide === null && (m.store.pairs.length || Object.keys(m.store.saved).length)) guide = false; render(); }
   if (m.type === 'selection') { selCount = m.count; renderSel(); }
   if (m.type === 'notice') notice(m.message, m.ok);
 };
