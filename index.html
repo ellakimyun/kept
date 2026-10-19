@@ -463,6 +463,7 @@ dialog.dlg::backdrop{background:rgba(0,0,0,.28)}
   </div>
   <div class="shelves" role="group" aria-label="Shelves" id="shelves"></div>
   <div class="ptabs" role="group" aria-label="Show" id="savedTabs" hidden></div>
+  <div class="shelves" role="group" aria-label="Filter by shelf" id="savedShelves" hidden></div>
   <div class="toolbar" id="toolbar">
     <label style="flex:999 1 280px;min-width:0"><span class="sr">Preview text</span><input class="pv" id="pv" type="text" placeholder="Type to preview…"></label>
     <div class="ctl">
@@ -630,7 +631,7 @@ const show = (v) => {
   for (const id of ['v-onboard', 'v-load', 'v-sort', 'v-lib', 'v-play', 'v-detail']) $(id).hidden = id !== v;
   const inApp = ['v-sort', 'v-lib', 'v-play', 'v-detail'].includes(v);
   $('mainnav').hidden = !inApp; $('navLib').hidden = !inApp; $('pgActs').hidden = v !== 'v-play';
-  $('searchbox').hidden = !(v === 'v-lib' && ui.page === 'library');
+  $('searchbox').hidden = !(v === 'v-lib' && (ui.page === 'library' || ui.page === 'saved'));
   if (inApp) { store.lastView = { 'v-sort': 'sort', 'v-lib': 'library', 'v-play': 'playground', 'v-detail': 'library' }[v]; persist(); }
   setNav(v === 'v-sort' ? 'sort' : v === 'v-play' ? 'playground' : ui.page);
 };
@@ -1056,7 +1057,7 @@ function computeList() {
   const q = ui.q.trim().toLowerCase();
   const list = families.filter((f) => {
     const s = shelfOf(f);
-    if (ui.page === 'saved') { if (!store.saved[f.family]) return false; }
+    if (ui.page === 'saved') { if (!store.saved[f.family]) return false; if (ui.savedShelf !== 'All' && s !== ui.savedShelf) return false; }
     else if (ui.shelf === 'All') { if (s === 'Hidden') return false; }
     else if (s !== ui.shelf) return false;
     if (q && !f.family.toLowerCase().includes(q)) return false;
@@ -1104,6 +1105,7 @@ function itemHTML(f, i) {
 const PAGE = 40;
 function renderMore() {
   const box = $('results').firstElementChild;
+  if (ui.page === 'saved' && ui.savedTab === 'pairs') return;
   if (!box || !box.matches('.grid,.rows') || ui.shown >= filtered.length) return;
   const end = Math.min(filtered.length, ui.shown + PAGE);
   const t = document.createElement('template');
@@ -1122,11 +1124,13 @@ function renderResults() {
   if (!filtered.length) {
     const msg = activeCount() ? ['Nothing matches these filters.', 'Widen a range or reset the filters to see more.']
       : ui.q ? [`Nothing called “${esc(ui.q)}”.`, 'Try part of the family name, or clear the search.']
+      : ui.page === 'saved' && ui.savedShelf !== 'All' ? [`No saved ${esc(ui.savedShelf.toLowerCase())} fonts.`, 'Bookmark one from that shelf in your library, or show all saved fonts.']
       : ui.page === 'saved' ? ['No saved fonts yet.', 'Tap the bookmark on any font in your library and it lands here.']
       : ui.shelf === 'Hidden' ? ['Nothing hidden.', 'System and language fonts, and anything you hide while sorting, appear here.']
       : ui.shelf === 'All' ? ['No fonts on your shelves.', 'Everything is on the Hidden shelf, or no fonts were found. Rescan after installing fonts, or drop font files anywhere on this page.']
       : [`No ${esc(ui.shelf.toLowerCase())} fonts.`, 'Move a font here from its card, or rescan if you installed new ones.'];
     const action = activeCount() ? '<button type="button" class="bt" data-act="clearf" style="color:var(--ink)">Reset filters</button>'
+      : ui.page === 'saved' && ui.savedShelf !== 'All' ? '<button type="button" class="bt" data-act="allshelves" style="color:var(--ink)">Show all saved</button>'
       : ui.page === 'saved' ? '<button type="button" class="bt" data-act="tolib" style="color:var(--ink)">Browse library</button>' : '';
     $('results').innerHTML = `<div class="empty"><h2>${msg[0]}</h2><p>${msg[1]}</p>${action}</div>`;
     return;
@@ -1340,29 +1344,50 @@ addEventListener('keydown', (e) => {
 
 /* ---------- nav ---------- */
 function setNav(page) {
-  $('searchbox').hidden = !(!$('v-lib').hidden && page === 'library');
+  $('searchbox').hidden = !(!$('v-lib').hidden && (page === 'library' || page === 'saved'));
+  $('q').placeholder = page === 'saved' ? (ui.savedTab === 'pairs' ? 'Search pairs' : 'Search saved') : 'Search';
   document.querySelectorAll('.hdr .nl[data-page]').forEach((b) => { if (b.dataset.page === page) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
 }
 
 /* ---------- saved: fonts + pairs ---------- */
 store.pairs = store.pairs || [];
 ui.savedTab = 'fonts';
+ui.savedShelf = 'All';
+const pairFams = (pr) => [pr.heading, pr.body, pr.caption].filter(Boolean);
+const pairShelves = (pr) => pairFams(pr).map((n) => { const f = famBy(n); return f ? shelfOf(f) : null; }).filter(Boolean);
 function renderSavedTabs() {
-  const box = $('savedTabs');
-  box.hidden = ui.page !== 'saved';
+  const box = $('savedTabs'), row = $('savedShelves');
+  box.hidden = row.hidden = ui.page !== 'saved';
   if (box.hidden) return;
-  const nf = families.filter((f) => store.saved[f.family]).length;
-  box.innerHTML = [['fonts', 'Fonts', nf], ['pairs', 'Pairs', store.pairs.length]].map(([k, l, n]) =>
+  const savedFams = families.filter((f) => store.saved[f.family]);
+  box.innerHTML = [['fonts', 'Fonts', savedFams.length], ['pairs', 'Pairs', store.pairs.length]].map(([k, l, n]) =>
     `<button type="button" class="tb" data-tab="${k}" aria-pressed="${ui.savedTab === k}">${l}<small>${fmt(n)}</small></button>`).join('');
+  // shelf filter: counts follow the tab you're on
+  const counts = Object.fromEntries(SHELVES.map((s) => [s, 0]));
+  let all;
+  if (ui.savedTab === 'pairs') { all = store.pairs.length; for (const pr of store.pairs) for (const s of new Set(pairShelves(pr))) if (s in counts) counts[s]++; }
+  else { all = savedFams.length; for (const f of savedFams) { const s = shelfOf(f); if (s in counts) counts[s]++; } }
+  if (!all) { row.hidden = true; return; }
+  const btn = (key, n) => `<button type="button" class="tb" data-sshelf="${esc(key)}" aria-pressed="${ui.savedShelf === key}">${esc(key)}<small>${fmt(n)}</small></button>`;
+  row.innerHTML = btn('All', all) + SHELVES.filter((s) => s !== 'Unsorted' || counts.Unsorted).map((s) => btn(s, counts[s])).join('');
 }
-$('savedTabs').onclick = (e) => { const b = e.target.closest('[data-tab]'); if (!b) return; ui.savedTab = b.dataset.tab; renderSavedTabs(); renderResults(); };
+$('savedTabs').onclick = (e) => { const b = e.target.closest('[data-tab]'); if (!b) return; ui.savedTab = b.dataset.tab; setNav('saved'); renderSavedTabs(); renderResults(); };
+$('savedShelves').onclick = (e) => { const b = e.target.closest('[data-sshelf]'); if (!b) return; ui.savedShelf = b.dataset.sshelf; renderSavedTabs(); renderResults(); };
 const famBy = (name) => families.find((f) => f.family === name);
 const cssOf = (name) => { const f = famBy(name); return f ? f.css : quote(name) + ', serif'; };
 function renderPairs() {
   $('libTitle').textContent = 'Saved';
-  const list = store.pairs;
+  filtered = []; ui.shown = 0;
+  if (!store.pairs.length) {
+    $('results').innerHTML = `<div class="empty"><h2>No saved pairs yet.</h2><p>Pairs are saved from the Playground. Pick a heading, body and caption font, then press Save pair and it will appear here.</p><button type="button" class="bt" data-act="toplay" style="color:var(--ink)">Go to Playground</button></div>`;
+    return;
+  }
+  const q = ui.q.trim().toLowerCase();
+  const list = store.pairs.filter((pr) => (!q || pairFams(pr).some((n) => n.toLowerCase().includes(q)))
+    && (ui.savedShelf === 'All' || pairShelves(pr).includes(ui.savedShelf)));
   if (!list.length) {
-    $('results').innerHTML = `<div class="empty"><h2>No saved pairs yet.</h2><p>Put fonts together in the Playground and press Save pair. They’ll wait for you here.</p><button type="button" class="bt" data-act="toplay" style="color:var(--ink)">Open Playground</button></div>`;
+    const msg = q ? `No pairs with “${esc(ui.q.trim())}”.` : `No pairs with a ${esc(ui.savedShelf.toLowerCase())} font.`;
+    $('results').innerHTML = `<div class="empty"><h2>${msg}</h2><p>Try another name or shelf, or make a new pair in the Playground.</p><button type="button" class="bt" data-act="allshelves" style="color:var(--ink)">Show all pairs</button></div>`;
     return;
   }
   $('results').innerHTML = '<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(min(100%,400px),1fr))">' + list.map((pr) => `
@@ -1800,12 +1825,13 @@ $('resumeBtn').onclick = () => {
   if (cur) enterSort({ shelf: cur }); else enterSort();
 };
 $('home').onclick = (e) => { e.preventDefault(); if (families.length) { if ($('v-lib').hidden) openLibrary(); ui.page = 'library'; ui.shelf = 'All'; render(); } };
-$('navLib').onclick = () => { ui.page = 'library'; ui.shelf = 'All'; if ($('v-lib').hidden) openLibrary(); else render(); };
+$('navLib').onclick = () => { if (ui.page !== 'library') { ui.q = ''; $('q').value = ''; } ui.page = 'library'; ui.shelf = 'All'; if ($('v-lib').hidden) openLibrary(); else render(); };
 $('mainnav').onclick = (e) => {
   const b = e.target.closest('[data-page]'); if (!b) return;
   const pg = b.dataset.page;
   if (pg === 'sort') { enterSort(); return; }
   if (pg === 'playground') { openPlayground(); return; }
+  if (ui.page !== pg) { ui.q = ''; $('q').value = ''; if (pg === 'saved') ui.savedShelf = 'All'; }
   ui.page = pg; if (pg === 'library') ui.shelf = 'All';
   if ($('v-lib').hidden) openLibrary(); else render();
 };
@@ -1821,6 +1847,7 @@ $('results').addEventListener('click', (e) => {
   const kind = b.dataset.act;
   if (kind === 'tolib') { ui.page = 'library'; ui.shelf = 'All'; render(); return; }
   if (kind === 'toplay') { openPlayground(); return; }
+  if (kind === 'allshelves') { ui.savedShelf = 'All'; ui.q = ''; $('q').value = ''; renderSavedTabs(); renderResults(); return; }
   if (kind === 'clearf') { resetFilters(); syncFilterBounds(); renderFilterBtn(); renderResults(); return; }
   if (kind === 'openpair') { const pr = (store.pairs || []).find((x) => x.k === b.dataset.k); if (pr) { Object.assign(pg, { heading: pr.heading, body: pr.body, caption: pr.caption, bg: pr.bg || pg.bg }); savePg(); openPlayground(); } return; }
   if (kind === 'unpair') {
